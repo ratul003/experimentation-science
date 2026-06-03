@@ -1,11 +1,42 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import SectionNav from "./SectionNav";
 import PortfolioLinks from "./PortfolioLinks";
 
-// ── Utility ───────────────────────────────────────────────────────────────────
+// ── Math utilities (power analysis in the browser) ────────────────────────────
+
+function normalCDF(z: number): number {
+  const p = 0.2316419;
+  const b = [0.319381530, -0.356563782, 1.781477937, -1.821255978, 1.330274429];
+  const t = 1 / (1 + p * Math.abs(z));
+  const y = 1 - (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * z * z) *
+    (((((b[4] * t + b[3]) * t + b[2]) * t + b[1]) * t + b[0]) * t);
+  return z >= 0 ? y : 1 - y;
+}
+
+function computePower(n: number, baseline: number, mde: number): number {
+  if (n < 1 || baseline <= 0 || mde <= 0) return 0;
+  const treatment = baseline * (1 + mde);
+  const pooled = (baseline + treatment) / 2;
+  const se = Math.sqrt(2 * pooled * (1 - pooled) / n);
+  if (se === 0) return 0;
+  const z = Math.abs(treatment - baseline) / se;
+  return normalCDF(z - 1.96) + normalCDF(-z - 1.96);
+}
+
+function computeRequiredN(baseline: number, mde: number): number {
+  let lo = 50, hi = 2_000_000;
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (computePower(mid, baseline, mde) >= 0.80) hi = mid;
+    else lo = mid + 1;
+  }
+  return lo;
+}
+
+// ── Utility components ────────────────────────────────────────────────────────
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return <p className="text-xs font-semibold tracking-[0.15em] uppercase text-amber-500 mb-3">{children}</p>;
@@ -16,7 +47,6 @@ function SectionHeading({ children }: { children: ReactNode }) {
 function Divider() {
   return <div className="divider-gradient my-20" />;
 }
-
 function ChapterBadge({ num, title, desc }: { num: string; title: string; desc: string }) {
   return (
     <div style={{ display: "flex", alignItems: "flex-start", gap: "20px", marginBottom: "52px" }}>
@@ -25,12 +55,11 @@ function ChapterBadge({ num, title, desc }: { num: string; title: string; desc: 
       </div>
       <div>
         <h2 style={{ fontSize: "1.65rem", fontWeight: 800, color: "#ffffff", marginBottom: "8px", lineHeight: 1.2 }}>{title}</h2>
-        <p style={{ fontSize: "0.88rem", color: "#9ca3af", maxWidth: "520px", lineHeight: 1.6 }}>{desc}</p>
+        <p style={{ fontSize: "0.88rem", color: "#9ca3af", maxWidth: "560px", lineHeight: 1.6 }}>{desc}</p>
       </div>
     </div>
   );
 }
-
 function ChapterTransition({ from, to }: { from: string; to: string }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "16px", margin: "80px 0 64px", padding: "18px 28px", background: "rgba(245,158,11,0.04)", borderRadius: "12px", border: "1px solid rgba(245,158,11,0.10)" }}>
@@ -47,23 +76,21 @@ function ChapterTransition({ from, to }: { from: string; to: string }) {
 
 function StoryArc() {
   const chapters = [
-    { label: "Ch01", title: "The Problem",     desc: "Why quality can't be assumed",   href: "#problem"    },
-    { label: "Ch02", title: "The Framework",   desc: "Statistical foundation",         href: "#lifecycle"  },
-    { label: "Ch03", title: "The Analysis",    desc: "Evidence and causal inference",  href: "#ai-quality" },
+    { label: "Ch01", title: "The Question",   desc: "What should we test and why?",          href: "#what-to-test" },
+    { label: "Ch02", title: "The Design",     desc: "Building an experiment you can trust",  href: "#design"       },
+    { label: "Ch03", title: "The Analysis",   desc: "Statistics, MVT, and interaction effects", href: "#mvt"       },
+    { label: "Ch04", title: "AI + Causal",    desc: "Agents that accelerate every phase",    href: "#ai-accel"     },
   ];
   return (
     <div style={{ background: "rgba(245,158,11,0.03)", borderTop: "1px solid rgba(245,158,11,0.10)", borderBottom: "1px solid rgba(245,158,11,0.10)", marginBottom: "80px" }}>
       <div className="max-w-6xl mx-auto px-6">
         <div style={{ display: "flex" }}>
           {chapters.map(({ label, title, desc, href }, i) => (
-            <React.Fragment key={label}>
-              <a href={href} style={{ textDecoration: "none", flex: 1, padding: "20px 28px", borderRight: i < chapters.length - 1 ? "1px solid rgba(245,158,11,0.10)" : "none" }}
-                className="card-hover" >
-                <div style={{ fontSize: "0.58rem", fontWeight: 900, textTransform: "uppercase" as const, letterSpacing: "0.14em", color: "#f59e0b", marginBottom: "5px" }}>{label}</div>
-                <div style={{ fontSize: "0.92rem", fontWeight: 700, color: "#f1f5f9", marginBottom: "3px" }}>{title}</div>
-                <div style={{ fontSize: "0.68rem", color: "#6b7280" }}>{desc}</div>
-              </a>
-            </React.Fragment>
+            <a key={label} href={href} style={{ textDecoration: "none", flex: 1, padding: "20px 24px", borderRight: i < chapters.length - 1 ? "1px solid rgba(245,158,11,0.10)" : "none" }} className="card-hover">
+              <div style={{ fontSize: "0.58rem", fontWeight: 900, textTransform: "uppercase" as const, letterSpacing: "0.14em", color: "#f59e0b", marginBottom: "5px" }}>{label}</div>
+              <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "#f1f5f9", marginBottom: "3px" }}>{title}</div>
+              <div style={{ fontSize: "0.67rem", color: "#6b7280" }}>{desc}</div>
+            </a>
           ))}
         </div>
       </div>
@@ -71,43 +98,364 @@ function StoryArc() {
   );
 }
 
-// ── Mini power curve (hero right column) ─────────────────────────────────────
+// ── Hero mini power curve ─────────────────────────────────────────────────────
 
 function MiniPowerCurve() {
   const W = 280; const H = 160;
-  // SVG coords: x maps to 0–28K impressions, y inverted (0=100% power, H=0% power)
-  // Threshold at 5K → x = W*(5/28) ≈ 50; 80% power → y = H*(1-0.80) = 32
-  const TX = Math.round(W * 5 / 28);  // 50
-  const TY = Math.round(H * 0.20);    // 32
-
+  const TX = Math.round(W * 5 / 28);
+  const TY = Math.round(H * 0.20);
   return (
-    <div style={{ background: "#0d1117", border: "1px solid #1e1e2e", borderRadius: "14px", padding: "20px", position: "relative" }}>
+    <div style={{ background: "#0d1117", border: "1px solid #1e1e2e", borderRadius: "14px", padding: "20px" }}>
       <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#6b7280", marginBottom: "12px" }}>
         Statistical Power vs Sample Size
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block" }}>
-        {/* Grid lines */}
-        <line x1="0" y1={TY}   x2={W} y2={TY}   stroke="#1e2a1e" strokeWidth="1" strokeDasharray="4 3" />
-        <line x1="0" y1={H*0.5} x2={W} y2={H*0.5} stroke="#1a1a2e" strokeWidth="1" strokeDasharray="4 3" />
-        {/* Power curve: smooth path from low to high */}
-        <path d={`M 0,${H-4} C 18,${H-6} 34,${H-30} ${TX},${TY} S 150,6 ${W},3`}
+        <line x1="0" y1={TY} x2={W} y2={TY} stroke="#1e2a1e" strokeWidth="1" strokeDasharray="4 3" />
+        <path d={`M 0,${H - 4} C 18,${H - 6} 34,${H - 30} ${TX},${TY} S 150,6 ${W},3`}
           fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
-        {/* Threshold vertical */}
         <line x1={TX} y1={TY} x2={TX} y2={H} stroke="rgba(16,185,129,0.5)" strokeWidth="1" strokeDasharray="4 3" />
-        {/* Threshold horizontal */}
         <line x1="0" y1={TY} x2={TX} y2={TY} stroke="rgba(16,185,129,0.4)" strokeWidth="1" strokeDasharray="4 3" />
-        {/* Intersection dot */}
         <circle cx={TX} cy={TY} r="5" fill="#10b981" stroke="#0d1117" strokeWidth="2" />
-        {/* Labels */}
-        <text x={TX+5} y={H-4} fontSize="9" fill="#10b981" fontWeight="700">5K</text>
-        <text x="3"    y={TY-5} fontSize="9" fill="#10b981" fontWeight="700">80%</text>
-        <text x="3"    y={H-4}  fontSize="8" fill="#4a4a68">0%</text>
-        <text x={W-24} y="11"   fontSize="8" fill="#4a4a68">100%</text>
-        <text x={W-26} y={H-4}  fontSize="8" fill="#4a4a68">25K+</text>
+        <text x={TX + 5} y={H - 4} fontSize="9" fill="#10b981" fontWeight="700">5K</text>
+        <text x="3" y={TY - 5} fontSize="9" fill="#10b981" fontWeight="700">80%</text>
+        <text x="3" y={H - 4} fontSize="8" fill="#4a4a68">0%</text>
+        <text x={W - 24} y="11" fontSize="8" fill="#4a4a68">100%</text>
+        <text x={W - 26} y={H - 4} fontSize="8" fill="#4a4a68">25K+</text>
       </svg>
       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "10px" }}>
         <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", flexShrink: 0 }} />
-        <span style={{ fontSize: "0.68rem", color: "#6b7280" }}>5K impressions → 80% power to detect 10% lift at α=0.05</span>
+        <span style={{ fontSize: "0.68rem", color: "#6b7280" }}>5K impressions = 80% power at α=0.05, 10% MDE</span>
+      </div>
+    </div>
+  );
+}
+
+// ── PM hypothesis cards ───────────────────────────────────────────────────────
+
+const HYPOTHESES = [
+  {
+    id: "pricing",
+    tag: "Pricing & Packaging",
+    tagColor: "#818cf8",
+    question: "Does a 3-tier pricing model convert better than 2 tiers?",
+    hypothesis: "If we introduce an Enterprise+ tier with AI features previewed (but gated), the upgrade rate from Growth will increase by 15% because customers value seeing capability before committing.",
+    metric: "Growth → Enterprise+ upgrade rate",
+    type: "Feature Flag",
+    mde: "15%",
+    expectedDays: "14–21 days",
+    insight: "The control had two tiers. Adding a third tier with a visible-but-locked AI feature created anchoring — customers benchmarked Growth against Enterprise+ and saw clear value in upgrading.",
+  },
+  {
+    id: "feature",
+    tag: "Feature Adoption",
+    tagColor: "#f59e0b",
+    question: "Does surfacing AI suggestions inline vs modal increase Dev Agent adoption?",
+    hypothesis: "If AI experiment suggestions appear inline in the editor (vs a separate modal), Dev Agent adoption will increase by 20% because friction at the point of decision matters more than comprehensive feature display.",
+    metric: "Dev Agent activation rate (first use within 7 days)",
+    type: "Feature Experimentation",
+    mde: "20%",
+    expectedDays: "10–14 days",
+    insight: "The modal variant required an extra click and broke the user's flow. Inline suggestions appeared at the exact moment users were defining their experiment: adoption jumped 23%.",
+  },
+  {
+    id: "onboarding",
+    tag: "Onboarding Optimization",
+    tagColor: "#34d399",
+    question: "Does showing a qualification progress bar reduce time-to-first-qualified-experiment?",
+    hypothesis: "If we show impression progress toward the 5,000-impression threshold during the running phase, time-to-first-qualified-experiment will decrease by 10% because visibility into quality metrics drives deliberate traffic allocation.",
+    metric: "Days from experiment creation to first qualified run",
+    type: "Web Experimentation",
+    mde: "10%",
+    expectedDays: "21–28 days",
+    insight: "Teams with the progress bar were 12% more likely to adjust traffic allocation mid-experiment to reach the threshold faster. The visibility changed behaviour, not just awareness.",
+  },
+];
+
+function HypothesisCards() {
+  const [active, setActive] = useState<string>("pricing");
+  const card = HYPOTHESES.find(h => h.id === active)!;
+  return (
+    <div>
+      {/* Tab row */}
+      <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
+        {HYPOTHESES.map(h => (
+          <button key={h.id} onClick={() => setActive(h.id)}
+            style={{ padding: "7px 16px", borderRadius: "8px", border: "1px solid", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", transition: "all .15s",
+              background: active === h.id ? `${h.tagColor}18` : "transparent",
+              borderColor: active === h.id ? `${h.tagColor}60` : "#2a2a3a",
+              color: active === h.id ? h.tagColor : "#6b7280" }}>
+            {h.tag}
+          </button>
+        ))}
+      </div>
+      {/* Card */}
+      <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", overflow: "hidden" }}>
+        {/* Top bar */}
+        <div style={{ background: `${card.tagColor}10`, borderBottom: `1px solid ${card.tagColor}20`, padding: "14px 20px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: card.tagColor }}>{card.tag}</span>
+          <span style={{ fontSize: "0.7rem", color: "#6b7280" }}>·</span>
+          <span style={{ fontSize: "0.72rem", color: "#6b7280" }}>{card.type} · MDE {card.mde} · {card.expectedDays}</span>
+        </div>
+        <div style={{ padding: "20px 24px" }}>
+          {/* Business question */}
+          <p style={{ fontSize: "1rem", fontWeight: 700, color: "#f1f5f9", marginBottom: "14px", lineHeight: 1.4 }}>{card.question}</p>
+          {/* Hypothesis anatomy */}
+          <div style={{ background: "#0d1117", border: "1px solid #1e1e2e", borderRadius: "10px", padding: "14px 16px", marginBottom: "14px" }}>
+            <div style={{ fontSize: "0.6rem", fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#f59e0b", marginBottom: "6px" }}>Hypothesis</div>
+            <p style={{ fontSize: "0.83rem", color: "#9ca3af", lineHeight: 1.65, margin: 0, fontStyle: "italic" }}>&ldquo;{card.hypothesis}&rdquo;</p>
+          </div>
+          {/* Two-col: metric + outcome */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            <div style={{ background: "#0d1117", border: "1px solid #1e1e2e", borderRadius: "10px", padding: "12px 14px" }}>
+              <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "#6b7280", textTransform: "uppercase" as const, letterSpacing: "0.1em", marginBottom: "5px" }}>Primary Metric</div>
+              <p style={{ fontSize: "0.8rem", color: "#e2e8f0", margin: 0, lineHeight: 1.5 }}>{card.metric}</p>
+            </div>
+            <div style={{ background: `${card.tagColor}08`, border: `1px solid ${card.tagColor}20`, borderRadius: "10px", padding: "12px 14px" }}>
+              <div style={{ fontSize: "0.6rem", fontWeight: 700, color: card.tagColor, textTransform: "uppercase" as const, letterSpacing: "0.1em", marginBottom: "5px" }}>What actually happened</div>
+              <p style={{ fontSize: "0.8rem", color: "#9ca3af", margin: 0, lineHeight: 1.5 }}>{card.insight}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Cross-industry applicability ──────────────────────────────────────────────
+
+const INDUSTRIES = [
+  { sector: "E-commerce",     icon: "🛍", color: "#818cf8", example: "Does showing 'Only 3 left' near the Add to Cart button increase purchase rate?",               metric: "Add-to-cart rate",     type: "A/B · Web"     },
+  { sector: "FinTech",        icon: "💳", color: "#f59e0b", example: "Does reducing the loan application from 12 to 6 fields increase completion?",                    metric: "Application completion", type: "A/B · Web"  },
+  { sector: "Healthcare",     icon: "🏥", color: "#34d399", example: "Does displaying doctor ratings before booking increase appointment completion?",                  metric: "Booking completion",   type: "A/B · Web"     },
+  { sector: "Media / DTC",    icon: "📱", color: "#f43f5e", example: "Does showing 3 personalised article previews before the paywall increase subscriptions?",       metric: "Subscription CVR",     type: "MVT · Feature" },
+  { sector: "Enterprise SaaS",icon: "⚙️", color: "#fbbf24", example: "Does AI feature preview in the free tier increase upgrades to paid plans?",                      metric: "Plan upgrade rate",    type: "Feature Flag"  },
+  { sector: "Logistics",      icon: "📦", color: "#a5b4fc", example: "Does real-time delivery ETA on the checkout screen reduce cart abandonment?",                    metric: "Cart completion rate", type: "A/B · Web"     },
+];
+
+function IndustryGrid() {
+  const [hovered, setHovered] = useState<string | null>(null);
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+      {INDUSTRIES.map(({ sector, icon, color, example, metric, type }) => {
+        const on = hovered === sector;
+        return (
+          <div key={sector}
+            onMouseEnter={() => setHovered(sector)}
+            onMouseLeave={() => setHovered(null)}
+            style={{ background: on ? `${color}10` : "#12121a", border: `1px solid ${on ? color + "40" : "#2a2a3a"}`, borderRadius: "12px", padding: "16px", cursor: "default", transition: "all .2s" }}>
+            <div style={{ fontSize: "1.25rem", marginBottom: "8px" }}>{icon}</div>
+            <div style={{ fontSize: "0.78rem", fontWeight: 700, color: on ? color : "#f1f5f9", marginBottom: "6px" }}>{sector}</div>
+            <p style={{ fontSize: "0.72rem", color: "#9ca3af", lineHeight: 1.55, margin: "0 0 8px" }}>{example}</p>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "0.6rem", fontWeight: 700, padding: "2px 7px", borderRadius: "5px", background: `${color}18`, color }}>{type}</span>
+              <span style={{ fontSize: "0.6rem", color: "#52525b", padding: "2px 7px", borderRadius: "5px", background: "#1a1a2e" }}>{metric}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Experiment type selector ──────────────────────────────────────────────────
+
+const EXP_TYPES = [
+  {
+    id: "ab",
+    label: "A/B Test",
+    tagline: "One variable, two variants",
+    color: "#818cf8",
+    when: "You have a single, clear hypothesis. One element changes — everything else stays constant. Works for most product decisions.",
+    optimizely: "Web Experimentation or Feature Experimentation depending on surface",
+    traffic: "Split evenly: 50/50",
+    sampleImpact: "Standard — full power calculation applies",
+    watchout: "Running multiple A/B tests on the same page simultaneously can contaminate results if users are exposed to both.",
+    example: "Test whether changing the primary CTA from 'Start Free Trial' to 'Try It Free' increases sign-ups.",
+  },
+  {
+    id: "mvt",
+    label: "Multivariate (MVT)",
+    tagline: "Multiple variables, all combinations",
+    color: "#f59e0b",
+    when: "You want to test multiple elements simultaneously and detect interaction effects — where two changes together outperform either alone.",
+    optimizely: "Web Experimentation (Optimizely X supports full factorial and fractional factorial MVT)",
+    traffic: "Split across all combinations: 4 variants in 2x2 = 25% each",
+    sampleImpact: "Larger: n multiplies by number of cells. A 2x2 requires ~4x the traffic of a simple A/B test for equal power.",
+    watchout: "Fractional factorial designs test a subset of combinations to reduce traffic requirements — but can't detect certain interaction effects.",
+    example: "Test headline × social proof × CTA colour simultaneously. Required to catch super-additive interactions that sequential A/B tests miss.",
+  },
+  {
+    id: "flag",
+    label: "Feature Flag",
+    tagline: "Server-side controlled rollout",
+    color: "#34d399",
+    when: "You're shipping a new feature and want to control rollout percentage, test it on a segment, or do a canary release before full launch.",
+    optimizely: "Feature Experimentation — SDK-based, works across any platform (web, mobile, server)",
+    traffic: "Configurable: 0–100% rollout with targeting rules (user attributes, segments, environments)",
+    sampleImpact: "Same power principles apply — but you control exposure exactly via SDK, so allocation is more precise than client-side cookie-based",
+    watchout: "Feature flags persist across sessions. Users assigned to a variant stay in it. Don't flip flags mid-experiment without resetting the analysis.",
+    example: "Roll out AI experiment suggestions to 10% of accounts, measure Dev Agent activation rate, expand to 50% if qualified.",
+  },
+  {
+    id: "holdout",
+    label: "Holdout Group",
+    tagline: "Long-run counterfactual control",
+    color: "#a5b4fc",
+    when: "You want to measure the cumulative value of an entire product area or feature portfolio over time — not a single feature in isolation.",
+    optimizely: "Feature Experimentation with a persistent exclusion group — Optimizely supports holdout layers for exactly this use case",
+    traffic: "Typically 5–10% held back from ALL feature changes for the entire measurement period",
+    sampleImpact: "Designed for long-term (90–365 day) measurement. Requires explicit statistical adjustment for multiple comparisons over time.",
+    watchout: "Holdout users receive no improvements for months. Balance measurement value against user experience degradation, especially for UX-critical paths.",
+    example: "Hold 10% of accounts off all AI feature releases for a quarter. Compare renewal rate at quarter-end to estimate total AI portfolio value.",
+  },
+];
+
+function ExperimentTypeSelector() {
+  const [active, setActive] = useState<string>("ab");
+  const t = EXP_TYPES.find(e => e.id === active)!;
+  return (
+    <div>
+      {/* Type tabs */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", marginBottom: "20px" }}>
+        {EXP_TYPES.map(e => {
+          const on = e.id === active;
+          return (
+            <button key={e.id} onClick={() => setActive(e.id)}
+              style={{ padding: "10px 8px", borderRadius: "10px", border: `1px solid ${on ? e.color + "60" : "#2a2a3a"}`, background: on ? `${e.color}12` : "#12121a", cursor: "pointer", transition: "all .15s", textAlign: "center" as const }}>
+              <div style={{ fontSize: "0.82rem", fontWeight: 700, color: on ? e.color : "#9ca3af", marginBottom: "2px" }}>{e.label}</div>
+              <div style={{ fontSize: "0.62rem", color: "#52525b" }}>{e.tagline}</div>
+            </button>
+          );
+        })}
+      </div>
+      {/* Detail panel */}
+      <div style={{ background: "#12121a", border: `1px solid ${t.color}25`, borderRadius: "14px", overflow: "hidden" }}>
+        <div style={{ background: `${t.color}10`, borderBottom: `1px solid ${t.color}20`, padding: "14px 20px" }}>
+          <span style={{ fontSize: "0.92rem", fontWeight: 700, color: t.color }}>{t.label}</span>
+          <span style={{ fontSize: "0.75rem", color: "#6b7280", marginLeft: "12px" }}>{t.tagline}</span>
+        </div>
+        <div style={{ padding: "20px 24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+          {[
+            { label: "When to use",           value: t.when,          color: t.color },
+            { label: "Optimizely product",     value: t.optimizely,    color: "#9ca3af" },
+            { label: "Traffic allocation",     value: t.traffic,       color: "#9ca3af" },
+            { label: "Sample size impact",     value: t.sampleImpact,  color: "#9ca3af" },
+          ].map(({ label, value, color }) => (
+            <div key={label} style={{ background: "#0d1117", border: "1px solid #1e1e2e", borderRadius: "10px", padding: "12px 14px" }}>
+              <div style={{ fontSize: "0.6rem", fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#52525b", marginBottom: "5px" }}>{label}</div>
+              <p style={{ fontSize: "0.78rem", color, lineHeight: 1.55, margin: 0 }}>{value}</p>
+            </div>
+          ))}
+        </div>
+        {/* Example */}
+        <div style={{ padding: "0 24px 20px" }}>
+          <div style={{ background: `${t.color}06`, border: `1px solid ${t.color}20`, borderRadius: "10px", padding: "12px 16px", display: "flex", gap: "10px", alignItems: "flex-start" }}>
+            <span style={{ fontSize: "0.6rem", fontWeight: 800, color: t.color, textTransform: "uppercase" as const, letterSpacing: "0.1em", flexShrink: 0, marginTop: "1px" }}>Example</span>
+            <p style={{ fontSize: "0.8rem", color: "#9ca3af", lineHeight: 1.6, margin: 0 }}>{t.example}</p>
+          </div>
+          <div style={{ marginTop: "10px", background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)", borderRadius: "10px", padding: "10px 14px", display: "flex", gap: "8px", alignItems: "flex-start" }}>
+            <span style={{ fontSize: "0.6rem", fontWeight: 800, color: "#ef4444", textTransform: "uppercase" as const, letterSpacing: "0.1em", flexShrink: 0, marginTop: "1px" }}>Watch out</span>
+            <p style={{ fontSize: "0.78rem", color: "#6b7280", lineHeight: 1.6, margin: 0 }}>{t.watchout}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Interactive sample size calculator ────────────────────────────────────────
+
+function SampleSizeCalculator() {
+  const [baseline, setBaseline] = useState(3);
+  const [mde, setMde] = useState(10);
+  const [variants, setVariants] = useState(2);
+
+  const baselineF = baseline / 100;
+  const mdeF = mde / 100;
+  const requiredN = computeRequiredN(baselineF, mdeF);
+  const powerAt5K = computePower(5000, baselineF, mdeF);
+  const totalN = requiredN * variants;
+  const daysAt500 = Math.ceil(totalN / 500);
+  const daysAt2K = Math.ceil(totalN / 2000);
+  const isQualified = requiredN <= 5000;
+
+  const powerRows = [
+    { n: 1000, label: "1K" },
+    { n: 2500, label: "2.5K" },
+    { n: 5000, label: "5K", threshold: true },
+    { n: 10000, label: "10K" },
+    { n: 25000, label: "25K" },
+  ].map(r => ({ ...r, power: computePower(r.n, baselineF, mdeF) }));
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+      {/* Left: sliders */}
+      <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "24px" }}>
+        <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#6b7280", marginBottom: "20px" }}>
+          Experiment parameters
+        </div>
+
+        {[
+          { label: "Baseline conversion rate", value: baseline, setter: setBaseline, min: 1, max: 15, step: 0.5, format: (v: number) => `${v}%` },
+          { label: "Minimum detectable effect (relative)", value: mde, setter: setMde, min: 5, max: 50, step: 1, format: (v: number) => `${v}%` },
+          { label: "Number of variants (incl. control)", value: variants, setter: setVariants, min: 2, max: 4, step: 1, format: (v: number) => `${v}` },
+        ].map(({ label, value, setter, min, max, step, format }) => (
+          <div key={label} style={{ marginBottom: "20px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+              <span style={{ fontSize: "0.78rem", color: "#9ca3af" }}>{label}</span>
+              <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "#fbbf24", fontFamily: "monospace" }}>{format(value)}</span>
+            </div>
+            <input type="range" min={min} max={max} step={step} value={value}
+              onChange={e => setter(Number(e.target.value))}
+              style={{ width: "100%", accentColor: "#f59e0b", cursor: "pointer" }} />
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "3px" }}>
+              <span style={{ fontSize: "0.6rem", color: "#4a4a68" }}>{format(min)}</span>
+              <span style={{ fontSize: "0.6rem", color: "#4a4a68" }}>{format(max)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Right: results */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        {/* Key outputs */}
+        <div style={{ background: isQualified ? "rgba(16,185,129,0.06)" : "rgba(245,158,11,0.06)", border: `1px solid ${isQualified ? "rgba(16,185,129,0.25)" : "rgba(245,158,11,0.25)"}`, borderRadius: "14px", padding: "20px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            {[
+              { label: "n per variation", value: requiredN.toLocaleString(), sub: "for 80% power" },
+              { label: "Total traffic needed", value: totalN.toLocaleString(), sub: `${variants} variants` },
+              { label: "Power at 5,000 impressions", value: `${(powerAt5K * 100).toFixed(0)}%`, sub: isQualified ? "≥ threshold ✓" : "below threshold" },
+              { label: "Duration estimate", value: `${daysAt2K}–${daysAt500}d`, sub: "at 2K–500 visits/day" },
+            ].map(({ label, value, sub }) => (
+              <div key={label}>
+                <div style={{ fontSize: "0.6rem", color: "#6b7280", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: "3px" }}>{label}</div>
+                <div style={{ fontSize: "1.1rem", fontWeight: 800, color: isQualified ? "#10b981" : "#f59e0b", fontFamily: "monospace" }}>{value}</div>
+                <div style={{ fontSize: "0.62rem", color: "#52525b" }}>{sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Power at each sample size */}
+        <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "16px 18px" }}>
+          <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#6b7280", marginBottom: "12px" }}>
+            Power curve — your parameters
+          </div>
+          {powerRows.map(({ n, label, threshold, power }) => {
+            const pct = Math.min(100, Math.round(power * 100));
+            const col = threshold ? "#10b981" : pct >= 80 ? "#34d399" : pct >= 50 ? "#f59e0b" : "#ef4444";
+            return (
+              <div key={n} style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "7px", background: threshold ? "rgba(16,185,129,0.04)" : "transparent", padding: threshold ? "5px 6px" : "0", borderRadius: "6px" }}>
+                <div style={{ width: "32px", flexShrink: 0, fontSize: "0.72rem", fontFamily: "monospace", color: threshold ? "#10b981" : "#9ca3af" }}>{label}</div>
+                <div style={{ flex: 1, height: "5px", background: "rgba(255,255,255,0.05)", borderRadius: "3px", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${pct}%`, background: col, borderRadius: "3px", transition: "width .4s ease" }} />
+                </div>
+                <div style={{ width: "34px", textAlign: "right" as const, fontSize: "0.72rem", fontWeight: 700, color: col, fontFamily: "monospace" }}>{pct}%</div>
+                {threshold && <span style={{ fontSize: "0.55rem", color: "#10b981", fontWeight: 700 }}>GATE</span>}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -127,7 +475,7 @@ function ExperimentLifecycleFlow() {
   ];
   return (
     <div style={{ overflowX: "auto", paddingBottom: "8px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "0", flexWrap: "nowrap", minWidth: "600px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0", flexWrap: "nowrap", minWidth: "620px" }}>
         {steps.map(({ label, sub, color, gate }, i) => (
           <React.Fragment key={label}>
             <div style={{ background: gate ? "rgba(16,185,129,0.12)" : `${color}10`, border: `1px solid ${gate ? "rgba(16,185,129,0.35)" : `${color}28`}`, borderRadius: "10px", padding: "10px 14px", textAlign: "center", flexShrink: 0, boxShadow: gate ? "0 0 16px rgba(16,185,129,0.15)" : "none" }}>
@@ -143,35 +491,337 @@ function ExperimentLifecycleFlow() {
   );
 }
 
-// ── Power analysis viz ────────────────────────────────────────────────────────
+// ── Optimizely product decision guide ─────────────────────────────────────────
 
-function PowerAnalysisViz() {
-  const rows = [
-    { impressions: "1,000",  power: 12, mde: "~35%", risk: "Very high: results unreliable" },
-    { impressions: "2,500",  power: 38, mde: "~22%", risk: "High: only detects large effects" },
-    { impressions: "5,000",  power: 80, mde: "~10%", risk: "Acceptable: industry standard", qualified: true },
-    { impressions: "10,000", power: 95, mde: "~7%",  risk: "Strong: detects smaller effects" },
-    { impressions: "25,000+",power: 99, mde: "~4%",  risk: "Excellent: high sensitivity" },
+function OptimizelyProductGuide() {
+  const products = [
+    {
+      name: "Web Experimentation",
+      color: "#818cf8",
+      layer: "Client-side",
+      best: ["Pricing page layout", "CTA copy & colour", "Sign-up form changes", "Navigation tests", "Landing page MVT"],
+      metrics: ["Click-through", "Form submissions", "Page engagement"],
+      how: "JavaScript snippet or browser extension injects variant code. Traffic allocated by URL matching and custom audience rules.",
+      typical_mde: "5–15%",
+    },
+    {
+      name: "Feature Experimentation",
+      color: "#10b981",
+      layer: "Server-side",
+      best: ["AI feature rollouts", "Algorithm changes", "Pricing tier logic", "Backend optimisation", "Mobile app features"],
+      metrics: ["Custom conversion events", "Revenue events", "Error rates", "Session depth"],
+      how: "SDK-based (JS, Python, Java, iOS, Android). Feature flags gate code paths. Traffic allocated by user attributes with exact reproducibility.",
+      typical_mde: "10–30%",
+    },
   ];
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      {rows.map(({ impressions, power, mde, risk, qualified }) => (
-        <div key={impressions} style={{ display: "flex", alignItems: "center", gap: "12px", background: qualified ? "rgba(16,185,129,0.06)" : "rgba(255,255,255,0.02)", border: `1px solid ${qualified ? "rgba(16,185,129,0.2)" : "rgba(255,255,255,0.05)"}`, borderRadius: "10px", padding: "10px 14px" }}>
-          <div style={{ width: "64px", flexShrink: 0 }}>
-            <div style={{ fontSize: "0.82rem", fontWeight: 700, color: qualified ? "#10b981" : "#f1f5f9", fontFamily: "ui-monospace, monospace" }}>{impressions}</div>
-            <div style={{ fontSize: "0.6rem", color: "#6b7280" }}>impressions</div>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+      {products.map(({ name, color, layer, best, metrics, how, typical_mde }) => (
+        <div key={name} style={{ background: "#12121a", border: `1px solid ${color}25`, borderRadius: "14px", overflow: "hidden" }}>
+          <div style={{ background: `${color}10`, borderBottom: `1px solid ${color}20`, padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: "0.9rem", fontWeight: 700, color }}>{name}</span>
+            <span style={{ fontSize: "0.68rem", padding: "3px 8px", borderRadius: "5px", background: `${color}20`, color }}>{layer}</span>
           </div>
-          <div style={{ flex: 1, height: "6px", background: "rgba(255,255,255,0.06)", borderRadius: "3px", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${power}%`, background: qualified ? "linear-gradient(90deg,#10b981,#34d399)" : power > 60 ? "#6366f1" : power > 30 ? "#f59e0b" : "#ef4444", borderRadius: "3px" }} />
+          <div style={{ padding: "16px 20px" }}>
+            <div style={{ marginBottom: "14px" }}>
+              <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#52525b", marginBottom: "7px" }}>Best for</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                {best.map(b => <span key={b} style={{ fontSize: "0.68rem", padding: "3px 8px", borderRadius: "5px", background: "#0d1117", color: "#9ca3af", border: "1px solid #1e1e2e" }}>{b}</span>)}
+              </div>
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "#9ca3af", lineHeight: 1.6, marginBottom: "12px" }}>{how}</div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <div style={{ flex: 1, background: "#0d1117", borderRadius: "8px", padding: "8px 10px" }}>
+                <div style={{ fontSize: "0.58rem", color: "#52525b", marginBottom: "3px" }}>Typical MDE</div>
+                <div style={{ fontSize: "0.82rem", fontWeight: 700, color, fontFamily: "monospace" }}>{typical_mde}</div>
+              </div>
+              <div style={{ flex: 2, background: "#0d1117", borderRadius: "8px", padding: "8px 10px" }}>
+                <div style={{ fontSize: "0.58rem", color: "#52525b", marginBottom: "3px" }}>Common metrics</div>
+                <div style={{ fontSize: "0.7rem", color: "#9ca3af" }}>{metrics.join(" · ")}</div>
+              </div>
+            </div>
           </div>
-          <div style={{ width: "36px", flexShrink: 0, fontSize: "0.78rem", fontWeight: 700, color: qualified ? "#10b981" : "#f1f5f9", textAlign: "right" as const }}>{power}%</div>
-          <div style={{ width: "44px", flexShrink: 0, fontSize: "0.7rem", color: "#f59e0b", fontFamily: "ui-monospace, monospace" }}>{mde}</div>
-          <div style={{ fontSize: "0.72rem", color: "#6b7280", flex: 1 }}>{risk}{qualified && <span style={{ color: "#10b981", fontWeight: 700 }}> ← qualified threshold</span>}</div>
         </div>
       ))}
-      <div style={{ fontSize: "0.7rem", color: "#6b7280", marginTop: "4px" }}>
-        Power = probability of detecting a true effect at α=0.05, 2-tailed. MDE = minimum detectable effect at 80% power, 2–5% baseline conversion.
+      {/* Decision strip */}
+      <div style={{ gridColumn: "1 / -1", background: "rgba(245,158,11,0.04)", border: "1px solid rgba(245,158,11,0.12)", borderRadius: "12px", padding: "14px 20px" }}>
+        <div style={{ fontSize: "0.6rem", fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#f59e0b", marginBottom: "8px" }}>Decision rule</div>
+        <p style={{ fontSize: "0.82rem", color: "#9ca3af", margin: 0, lineHeight: 1.65 }}>
+          Is the change visible in the browser? Use <strong style={{ color: "#818cf8" }}>Web Experimentation</strong>.
+          Is it a feature, algorithm, or something that needs to stay consistent across sessions and platforms? Use <strong style={{ color: "#10b981" }}>Feature Experimentation</strong>.
+          Testing AI behaviour (Dev Agent suggestions, response formatting, model routing)? Always Feature Experimentation: the change lives server-side and must be consistent for a given user session.
+        </p>
       </div>
+    </div>
+  );
+}
+
+// ── MVT results matrix ────────────────────────────────────────────────────────
+
+function MVTResultsMatrix() {
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const cells = [
+    { id: "00", headline: "Original",     social: "No proof",      rate: 3.1, lift: 0,    p: 1.000, significant: false, winner: false,  note: "Control — baseline 3.1% conversion" },
+    { id: "10", headline: "New (benefit)", social: "No proof",      rate: 3.3, lift: 6.5,  p: 0.148, significant: false, winner: false,  note: "New headline alone: marginal lift, not significant. Two A/B tests would stop here." },
+    { id: "01", headline: "Original",     social: "Social proof",  rate: 3.4, lift: 9.7,  p: 0.083, significant: false, winner: false,  note: "Social proof alone: directionally positive but not significant at α=0.05." },
+    { id: "11", headline: "New (benefit)", social: "Social proof",  rate: 4.2, lift: 35.5, p: 0.000, significant: true,  winner: true,   note: "Interaction winner: new headline × social proof is super-additive. Neither variable worked alone." },
+  ];
+
+  const selectedCell = cells.find(c => c.id === selected);
+  const headlines = ["Original", "New (benefit)"];
+  const socials = ["No proof", "Social proof"];
+
+  return (
+    <div>
+      {/* The matrix */}
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ borderCollapse: "collapse", width: "100%", minWidth: "480px" }}>
+          <thead>
+            <tr>
+              <td style={{ padding: "10px 14px", background: "#0d1117" }} />
+              {socials.map(s => (
+                <th key={s} style={{ padding: "10px 20px", background: "#0d1117", borderBottom: "1px solid #2a2a3a", fontSize: "0.75rem", fontWeight: 700, color: "#9ca3af", textAlign: "center" as const }}>
+                  {s}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {headlines.map(h => (
+              <tr key={h}>
+                <td style={{ padding: "10px 14px", background: "#0d1117", borderRight: "1px solid #2a2a3a", fontSize: "0.75rem", fontWeight: 700, color: "#9ca3af", whiteSpace: "nowrap" }}>
+                  {h}
+                </td>
+                {socials.map(s => {
+                  const hCode = h === "New (benefit)" ? "1" : "0";
+                  const sCode = s === "Social proof" ? "1" : "0";
+                  const cell = cells.find(c => c.id === hCode + sCode)!;
+                  const isSelected = selected === cell.id;
+                  const bg = cell.winner ? "rgba(16,185,129,0.12)" : cell.significant ? "rgba(245,158,11,0.08)" : "#12121a";
+                  const border = cell.winner ? "rgba(16,185,129,0.5)" : isSelected ? "#f59e0b" : "#2a2a3a";
+                  return (
+                    <td key={s}
+                      onClick={() => setSelected(isSelected ? null : cell.id)}
+                      style={{ padding: "16px 20px", background: bg, border: `2px solid ${border}`, cursor: "pointer", textAlign: "center" as const, transition: "all .2s", position: "relative" as const }}>
+                      {cell.winner && (
+                        <div style={{ position: "absolute", top: "6px", right: "8px", fontSize: "0.55rem", fontWeight: 900, color: "#10b981", textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>
+                          WINNER
+                        </div>
+                      )}
+                      <div style={{ fontSize: "1.25rem", fontWeight: 800, color: cell.winner ? "#10b981" : cell.id === "00" ? "#6b7280" : "#f1f5f9", fontFamily: "monospace" }}>
+                        {cell.rate}%
+                      </div>
+                      <div style={{ fontSize: "0.7rem", fontWeight: 600, color: cell.lift > 0 ? (cell.significant ? "#34d399" : "#f59e0b") : "#6b7280", marginTop: "3px" }}>
+                        {cell.lift > 0 ? `+${cell.lift}%` : "Control"}
+                      </div>
+                      <div style={{ fontSize: "0.62rem", color: cell.significant ? "#34d399" : "#52525b", marginTop: "2px" }}>
+                        {cell.id === "00" ? "baseline" : cell.significant ? `p=${cell.p.toFixed(3)} ✓` : `p=${cell.p.toFixed(3)} n.s.`}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Click explanation */}
+      <div style={{ marginTop: "12px", minHeight: "80px", background: "#0d1117", border: "1px solid #1e1e2e", borderRadius: "10px", padding: "14px 16px" }}>
+        {selectedCell ? (
+          <>
+            <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: selectedCell.winner ? "#10b981" : "#f59e0b", marginBottom: "5px" }}>
+              {selectedCell.headline} · {selectedCell.social}
+            </div>
+            <p style={{ fontSize: "0.82rem", color: "#9ca3af", margin: 0, lineHeight: 1.6 }}>{selectedCell.note}</p>
+          </>
+        ) : (
+          <p style={{ fontSize: "0.78rem", color: "#4a4a68", margin: 0, lineHeight: 1.6 }}>
+            Click any cell to see the interpretation. The key insight is in the bottom-right.
+          </p>
+        )}
+      </div>
+
+      {/* The interaction callout */}
+      <div style={{ marginTop: "12px", background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.18)", borderRadius: "12px", padding: "16px 20px" }}>
+        <div style={{ fontSize: "0.6rem", fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#10b981", marginBottom: "6px" }}>The interaction effect</div>
+        <p style={{ fontSize: "0.85rem", color: "#9ca3af", lineHeight: 1.7, margin: 0 }}>
+          Two separate A/B tests would have said: &ldquo;the new headline doesn&apos;t work (p=0.15) and social proof might work (p=0.08).&rdquo;
+          The full factorial design reveals the actual answer: neither works alone, but together they deliver a{" "}
+          <strong style={{ color: "#10b981" }}>+35% conversion lift</strong>. Sequential A/B testing would have shipped the wrong variant.
+          This is why pricing page and packaging tests almost always require MVT.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── Statistical framework ─────────────────────────────────────────────────────
+
+function StatsFramework() {
+  const [view, setView] = useState<"freq" | "bayes">("freq");
+  return (
+    <div>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
+        {(["freq", "bayes"] as const).map(v => (
+          <button key={v} onClick={() => setView(v)}
+            style={{ padding: "8px 20px", borderRadius: "8px", border: "1px solid", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer", transition: "all .15s",
+              background: view === v ? (v === "freq" ? "rgba(99,102,241,0.12)" : "rgba(245,158,11,0.12)") : "transparent",
+              borderColor: view === v ? (v === "freq" ? "rgba(99,102,241,0.4)" : "rgba(245,158,11,0.4)") : "#2a2a3a",
+              color: view === v ? (v === "freq" ? "#818cf8" : "#fbbf24") : "#6b7280" }}>
+            {v === "freq" ? "Frequentist" : "Bayesian"}
+          </button>
+        ))}
+      </div>
+      {view === "freq" ? (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "20px" }}>
+            <div style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#818cf8", marginBottom: "14px" }}>What it measures</div>
+            <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
+              {[
+                { field: "p-value", note: "P(data this extreme | no real effect). Below 0.05 = reject null." },
+                { field: "Significance flag", note: "Boolean decision: significant or not." },
+                { field: "Relative lift %", note: "Treatment conversion rate vs control, as relative change." },
+                { field: "Rate variance", note: "Per-variation — feeds power calculation for future planning." },
+              ].map(({ field, note }) => (
+                <li key={field} style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                  <code style={{ fontSize: "0.7rem", padding: "2px 7px", borderRadius: "4px", background: "rgba(99,102,241,0.1)", color: "#a5b4fc", fontFamily: "monospace", flexShrink: 0, marginTop: "1px" }}>{field}</code>
+                  <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>{note}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "20px" }}>
+            <div style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#818cf8", marginBottom: "14px" }}>When to use it</div>
+            <p style={{ fontSize: "0.82rem", color: "#9ca3af", lineHeight: 1.7, margin: "0 0 14px" }}>
+              Frequentist works well for high-volume, repeated experiments where you need a consistent, auditable decision rule. It answers: &ldquo;is there evidence of an effect?&rdquo;
+            </p>
+            <div style={{ background: "#0d1117", borderRadius: "8px", padding: "10px 12px", border: "1px solid #1e1e2e" }}>
+              <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "#ef4444", textTransform: "uppercase" as const, letterSpacing: "0.1em", marginBottom: "5px" }}>Common mistake</div>
+              <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: 0, lineHeight: 1.55 }}>
+                &ldquo;Peeking&rdquo;: checking results mid-experiment and stopping early when p&lt;0.05. This inflates false positive rate dramatically. You must pre-commit to your sample size.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "20px" }}>
+            <div style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#fbbf24", marginBottom: "14px" }}>What it measures</div>
+            <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
+              {[
+                { field: "Posterior probability", note: "P(treatment wins | observed data). Directly interpretable." },
+                { field: "Credible interval", note: "Range of plausible lift values with 95% probability." },
+                { field: "Expected loss", note: "Cost of choosing wrong variant — drives the stop decision." },
+                { field: "Lift status", note: "'winning' | 'losing' | 'inconclusive' based on posterior threshold." },
+              ].map(({ field, note }) => (
+                <li key={field} style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                  <code style={{ fontSize: "0.7rem", padding: "2px 7px", borderRadius: "4px", background: "rgba(245,158,11,0.1)", color: "#fbbf24", fontFamily: "monospace", flexShrink: 0, marginTop: "1px" }}>{field}</code>
+                  <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>{note}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "20px" }}>
+            <div style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#fbbf24", marginBottom: "14px" }}>When to use it</div>
+            <p style={{ fontSize: "0.82rem", color: "#9ca3af", lineHeight: 1.7, margin: "0 0 14px" }}>
+              Bayesian is better for low-traffic experiments and sequential decision-making — you can update the posterior with new data without inflating error rates. It answers: &ldquo;how likely is the variation winning?&rdquo;
+            </p>
+            <div style={{ background: "#0d1117", borderRadius: "8px", padding: "10px 12px", border: "1px solid #1e1e2e" }}>
+              <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "#34d399", textTransform: "uppercase" as const, letterSpacing: "0.1em", marginBottom: "5px" }}>Key advantage</div>
+              <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: 0, lineHeight: 1.55 }}>
+                Expected loss enables continuous monitoring without penalty. Stop when the cost of being wrong drops below your business threshold — no fixed sample size required.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      <div style={{ marginTop: "12px", background: "rgba(245,158,11,0.04)", border: "1px solid rgba(245,158,11,0.12)", borderRadius: "10px", padding: "12px 16px" }}>
+        <p style={{ fontSize: "0.8rem", color: "#9ca3af", margin: 0, lineHeight: 1.6 }}>
+          At Optimizely, the platform stores <strong style={{ color: "#fbbf24" }}>both paradigms side by side</strong> per experiment × variation × metric.
+          PMs use Bayesian posteriors for ship/stop decisions; the data team uses frequentist p-values for audit trails and board reporting. Different questions, same underlying data.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── AI acceleration flow ──────────────────────────────────────────────────────
+
+function AIAccelerationFlow() {
+  const phases = [
+    {
+      phase: "Design",
+      without: ["Write hypothesis manually", "Google sample size calculators", "Manually set up targeting rules", "Forget guardrail metrics"],
+      with:    ["Dev Agent drafts hypothesis from product context", "Auto-calculates sample size from historical conversion data", "Suggested targeting based on prior experiments", "Guardrail metrics auto-populated from metric library"],
+      aiTool: "Dev Agent",
+      lift: "+25% setup quality score",
+    },
+    {
+      phase: "Launch",
+      without: ["Implement variant code manually", "Test across browsers", "Manually check SDK integration", "Estimate allocation from gut feel"],
+      with:    ["Dev Agent generates variant implementation in one prompt", "Auto-validates against browser compatibility rules", "SDK config checked against Tracking Plan", "Traffic allocation optimised for MDE within traffic constraints"],
+      aiTool: "Dev Agent",
+      lift: "~3 hours → ~20 minutes",
+    },
+    {
+      phase: "Monitor",
+      without: ["Check results daily in OA manually", "Spot data quality issues late", "Miss interaction effects", "React to early noise ('peeking')"],
+      with:    ["Opal agent alerts when power is reached", "Automated data quality checks flag anomalies early", "Interaction effects surfaced in MVT analysis", "Sequential validity enforced — no early peeking penalty"],
+      aiTool: "Opal Analytics",
+      lift: "Earlier catch rate on bad experiments",
+    },
+    {
+      phase: "Decide",
+      without: ["Read statistical output and interpret manually", "Write results summary for stakeholders", "Decide next test from gut feel", "Manually archive experiment learnings"],
+      with:    ["Opal explains results in plain language with confidence framing", "Auto-generates stakeholder summary pushed to Coda", "Recommends next hypothesis based on experiment history", "Learning is stored, searchable, and feeds future power calculations"],
+      aiTool: "Opal Analytics",
+      lift: "2 days → same day decision",
+    },
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+      {/* Header row */}
+      <div style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr", gap: "12px", paddingBottom: "8px", borderBottom: "1px solid #2a2a3a" }}>
+        <div />
+        <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#ef4444", textAlign: "center" as const }}>Without AI</div>
+        <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#10b981", textAlign: "center" as const }}>With AI (Dev Agent + Opal)</div>
+      </div>
+
+      {phases.map(({ phase, without, with: withAI, aiTool, lift }) => (
+        <div key={phase} style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr", gap: "12px", alignItems: "stretch" }}>
+          {/* Phase label */}
+          <div style={{ display: "flex", alignItems: "flex-start", paddingTop: "14px" }}>
+            <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "8px", padding: "5px 8px", textAlign: "center" as const }}>
+              <div style={{ fontSize: "0.58rem", fontWeight: 900, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#f59e0b" }}>{phase}</div>
+            </div>
+          </div>
+          {/* Without */}
+          <div style={{ background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.12)", borderRadius: "10px", padding: "12px 14px" }}>
+            {without.map((item, i) => (
+              <div key={i} style={{ display: "flex", gap: "8px", marginBottom: i < without.length - 1 ? "7px" : "0" }}>
+                <span style={{ color: "#4a2020", fontSize: "0.7rem", flexShrink: 0, marginTop: "1px" }}>·</span>
+                <span style={{ fontSize: "0.75rem", color: "#6b7280", lineHeight: 1.5 }}>{item}</span>
+              </div>
+            ))}
+          </div>
+          {/* With AI */}
+          <div style={{ background: "rgba(16,185,129,0.04)", border: "1px solid rgba(16,185,129,0.18)", borderRadius: "10px", padding: "12px 14px" }}>
+            {withAI.map((item, i) => (
+              <div key={i} style={{ display: "flex", gap: "8px", marginBottom: i < withAI.length - 1 ? "7px" : "0" }}>
+                <span style={{ color: "#10b981", fontSize: "0.7rem", flexShrink: 0, marginTop: "1px" }}>✓</span>
+                <span style={{ fontSize: "0.75rem", color: "#9ca3af", lineHeight: 1.5 }}>{item}</span>
+              </div>
+            ))}
+            <div style={{ marginTop: "10px", paddingTop: "8px", borderTop: "1px solid rgba(16,185,129,0.12)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "0.62rem", color: "#4a5a4a" }}>{aiTool}</span>
+              <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#10b981" }}>{lift}</span>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -186,7 +836,7 @@ function AIQualityComparison() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
       <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#6b7280", marginBottom: "4px" }}>
-        Qualification rate: % of experiments clearing ≥5K impressions
+        Qualification rate — % of experiments clearing ≥5K impressions
       </div>
       {bars.map(({ label, qualified, color }) => (
         <div key={label}>
@@ -200,7 +850,7 @@ function AIQualityComparison() {
         </div>
       ))}
       <div style={{ fontSize: "0.75rem", color: "#9ca3af", lineHeight: 1.6, background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: "8px", padding: "10px 14px", marginTop: "4px" }}>
-        <span style={{ color: "#10b981", fontWeight: 700 }}>+16pp qualification rate lift</span>: the evidence base for the Experimentation→Opal commercial attach motion. AI-assisted experiments aren&apos;t just faster; they&apos;re structurally better-constructed, clearing the statistical quality bar at a higher rate.
+        <strong style={{ color: "#10b981" }}>+16% qualification rate lift</strong> — 58% of standard experiments cleared the quality bar; 74% of Dev Agent-assisted ones did. That&apos;s not a velocity story: it&apos;s a quality story. I used this to anchor the commercial argument that selling Opal into Experimentation accounts made their core product work better.
       </div>
     </div>
   );
@@ -210,179 +860,140 @@ function AIQualityComparison() {
 
 function RetentionCohortChart() {
   const cohorts = [
-    { tier: "0 qualified exps",  renewal: 42, accounts: 97,  color: "#6b7280" },
-    { tier: "1–4 qualified",     renewal: 61, accounts: 168, color: "#f59e0b" },
-    { tier: "5–19 qualified",    renewal: 78, accounts: 104, color: "#fbbf24" },
-    { tier: "20+ qualified",     renewal: 91, accounts: 31,  color: "#10b981" },
+    { tier: "0 qualified",     renewal: 42, accounts: 97,  color: "#6b7280" },
+    { tier: "1–4 qualified",   renewal: 61, accounts: 168, color: "#f59e0b" },
+    { tier: "5–19 qualified",  renewal: 78, accounts: 104, color: "#fbbf24" },
+    { tier: "20+ qualified",   renewal: 91, accounts: 31,  color: "#10b981" },
   ];
   return (
     <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "24px" }}>
       <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#6b7280", marginBottom: "18px" }}>
         Contract renewal rate by qualified experiment tier (L90D)
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        {cohorts.map(({ tier, renewal, accounts, color }) => (
-          <div key={tier} style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-            <div style={{ width: "130px", flexShrink: 0 }}>
-              <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "#e2e8f0" }}>{tier}</div>
-              <div style={{ fontSize: "0.62rem", color: "#52525b" }}>{accounts} accounts</div>
-            </div>
-            <div style={{ flex: 1, height: "10px", background: "rgba(255,255,255,0.05)", borderRadius: "5px", overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${renewal}%`, background: `linear-gradient(90deg, ${color}, ${color}cc)`, borderRadius: "5px", transition: "width 1s ease" }} />
-            </div>
-            <div style={{ width: "40px", textAlign: "right" as const, fontSize: "0.85rem", fontWeight: 800, color, fontFamily: "ui-monospace, monospace", flexShrink: 0 }}>{renewal}%</div>
+      {cohorts.map(({ tier, renewal, accounts, color }) => (
+        <div key={tier} style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "12px" }}>
+          <div style={{ width: "120px", flexShrink: 0 }}>
+            <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "#e2e8f0" }}>{tier}</div>
+            <div style={{ fontSize: "0.62rem", color: "#52525b" }}>{accounts} accounts</div>
           </div>
-        ))}
-      </div>
-      <div style={{ marginTop: "20px", padding: "12px 16px", background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: "8px" }}>
+          <div style={{ flex: 1, height: "10px", background: "rgba(255,255,255,0.05)", borderRadius: "5px", overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${renewal}%`, background: `linear-gradient(90deg, ${color}, ${color}cc)`, borderRadius: "5px" }} />
+          </div>
+          <div style={{ width: "40px", textAlign: "right" as const, fontSize: "0.85rem", fontWeight: 800, color, fontFamily: "monospace", flexShrink: 0 }}>{renewal}%</div>
+        </div>
+      ))}
+      <div style={{ marginTop: "16px", padding: "12px 16px", background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: "8px" }}>
         <span style={{ fontSize: "0.72rem", color: "#9ca3af", lineHeight: 1.6 }}>
-          <span style={{ color: "#10b981", fontWeight: 700 }}>+49pp renewal lift</span> from no engagement to highest tier. Controlled for ARR and tenure via logistic regression: experiment engagement remains a statistically significant predictor of renewal after removing confounders (χ²=38.7, p&lt;0.001).
+          <strong style={{ color: "#10b981" }}>+49% renewal rate</strong> from no engagement to highest tier. Controlled for ARR and tenure via logistic regression — experiment engagement remains a statistically significant predictor of renewal after confounders removed (χ²=38.7, p&lt;0.001).
         </span>
       </div>
     </div>
   );
 }
 
-// ── Causal DAG diagram ────────────────────────────────────────────────────────
+// ── Causal DAG ────────────────────────────────────────────────────────────────
 
 function CausalDAG() {
-  // Main chain nodes, horizontal. Confounders above pointing into the chain.
   const chain = [
-    { label: "Dev Agent",        sub: "AI assistance",           x: 30,  color: "#818cf8" },
-    { label: "Better Setup",     sub: "Experiment structure",    x: 182, color: "#a5b4fc" },
-    { label: "Qual. Rate ≥5K",  sub: "Impression threshold",    x: 334, color: "#f59e0b" },
-    { label: "Engaged L30D",     sub: "Engagement metric",       x: 486, color: "#fbbf24" },
-    { label: "Renewal",          sub: "Contract outcome",        x: 638, color: "#10b981" },
+    { label: "Dev Agent",       sub: "AI assistance",          x: 30,  color: "#818cf8" },
+    { label: "Better Setup",    sub: "Experiment structure",   x: 182, color: "#a5b4fc" },
+    { label: "Qual. Rate ≥5K",  sub: "Impression threshold",  x: 334, color: "#f59e0b" },
+    { label: "Engaged L30D",    sub: "Engagement metric",      x: 486, color: "#fbbf24" },
+    { label: "Renewal",         sub: "Contract outcome",       x: 638, color: "#10b981" },
   ];
   const nodeW = 112; const nodeH = 52; const nodeY = 100;
   const confounders = [
     { label: "ARR Tier", sub: "Account size", x: 258, y: 22, targets: [334, 638] },
     { label: "Tenure",   sub: "Account age",  x: 410, y: 22, targets: [486, 638] },
   ];
-
   return (
     <div style={{ background: "#0d1117", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "20px", overflowX: "auto" }}>
       <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#6b7280", marginBottom: "14px" }}>
-        Causal directed acyclic graph (DAG): backdoor paths from confounders
+        Causal DAG: backdoor paths from confounders
       </div>
       <svg viewBox="0 0 780 172" width="100%" style={{ display: "block", minWidth: "580px" }}>
-        {/* Confounder → chain arrows (dashed orange) */}
         {confounders.map((cf) =>
           cf.targets.map((tx) => (
-            <line key={`${cf.x}-${tx}`}
-              x1={cf.x + 56} y1={cf.y + 28}
-              x2={tx + 56}   y2={nodeY}
-              stroke="rgba(245,158,11,0.45)" strokeWidth="1.2" strokeDasharray="4 3"
-            />
+            <line key={`${cf.x}-${tx}`} x1={cf.x + 56} y1={cf.y + 28} x2={tx + 56} y2={nodeY}
+              stroke="rgba(245,158,11,0.45)" strokeWidth="1.2" strokeDasharray="4 3" />
           ))
         )}
-        {/* Main chain arrows */}
         {chain.slice(0, -1).map((node, i) => (
           <g key={`arr-${i}`}>
-            <defs>
-              <marker id={`arrow-${i}`} markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                <path d="M0,0 L0,6 L6,3 z" fill="#f59e0b" opacity="0.7" />
-              </marker>
-            </defs>
-            <line
-              x1={node.x + nodeW} y1={nodeY + nodeH / 2}
-              x2={chain[i + 1].x - 2} y2={nodeY + nodeH / 2}
-              stroke="#f59e0b" strokeWidth="1.5" opacity="0.6"
-              markerEnd={`url(#arrow-${i})`}
-            />
+            <defs><marker id={`arrow-${i}`} markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L6,3 z" fill="#f59e0b" opacity="0.7" />
+            </marker></defs>
+            <line x1={node.x + nodeW} y1={nodeY + nodeH / 2} x2={chain[i + 1].x - 2} y2={nodeY + nodeH / 2}
+              stroke="#f59e0b" strokeWidth="1.5" opacity="0.6" markerEnd={`url(#arrow-${i})`} />
           </g>
         ))}
-        {/* Confounder nodes */}
         {confounders.map((cf) => (
           <g key={cf.label}>
-            <rect x={cf.x} y={cf.y} width="112" height="36" rx="7"
-              fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.25)" strokeWidth="1" />
+            <rect x={cf.x} y={cf.y} width="112" height="36" rx="7" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.25)" strokeWidth="1" />
             <text x={cf.x + 56} y={cf.y + 13} textAnchor="middle" fontSize="9.5" fontWeight="700" fill="#fbbf24">{cf.label}</text>
-            <text x={cf.x + 56} y={cf.y + 26} textAnchor="middle" fontSize="8"   fill="#78716c">{cf.sub}</text>
+            <text x={cf.x + 56} y={cf.y + 26} textAnchor="middle" fontSize="8" fill="#78716c">{cf.sub}</text>
           </g>
         ))}
-        {/* Chain nodes */}
         {chain.map(({ label, sub, x, color }) => (
           <g key={label}>
-            <rect x={x} y={nodeY} width={nodeW} height={nodeH} rx="9"
-              fill={`${color}10`} stroke={`${color}40`} strokeWidth="1.2" />
+            <rect x={x} y={nodeY} width={nodeW} height={nodeH} rx="9" fill={`${color}10`} stroke={`${color}40`} strokeWidth="1.2" />
             <text x={x + nodeW / 2} y={nodeY + 20} textAnchor="middle" fontSize="10" fontWeight="700" fill={color}>{label}</text>
             <text x={x + nodeW / 2} y={nodeY + 34} textAnchor="middle" fontSize="8.5" fill="#6b7280">{sub}</text>
           </g>
         ))}
-        {/* Legend */}
         <line x1="20" y1="162" x2="50" y2="162" stroke="#f59e0b" strokeWidth="1.5" opacity="0.6" />
         <text x="55" y="165" fontSize="8" fill="#6b7280">Causal path</text>
         <line x1="130" y1="162" x2="160" y2="162" stroke="rgba(245,158,11,0.45)" strokeWidth="1.2" strokeDasharray="4 3" />
         <text x="165" y="165" fontSize="8" fill="#6b7280">Confounder (backdoor path)</text>
       </svg>
-      <div style={{ marginTop: "14px", fontSize: "0.72rem", color: "#6b7280", lineHeight: 1.6 }}>
-        Confounders create a spurious correlation between experiment engagement and renewal even without a causal effect: ARR tier affects both how many experiments accounts run and their baseline renewal probability. Causal inference methods are required to close these backdoor paths.
-      </div>
+      <p style={{ fontSize: "0.72rem", color: "#6b7280", lineHeight: 1.6, marginTop: "12px", marginBottom: 0 }}>
+        Large accounts (high ARR) run more experiments AND have higher baseline renewal rates — creating a spurious correlation. Causal inference methods close these backdoor paths before the retention finding can be taken to leadership.
+      </p>
     </div>
   );
 }
 
-// ── Causal inference approaches ───────────────────────────────────────────────
+// ── Causal identification approaches ─────────────────────────────────────────
 
 function CausalApproaches() {
   const [active, setActive] = useState<string>("rdd");
-
   const approaches = [
     {
-      id: "rdd",
-      label: "Regression Discontinuity",
-      short: "RDD",
-      pill: "Natural experiment",
-      pillColor: "rgba(99,102,241,0.15)",
-      pillText: "#818cf8",
-      desc: "The 5K impression threshold creates a natural discontinuity. Accounts just above and just below the gate are near-identical in sophistication: any jump in renewal probability at the cutoff is causal, not confounded.",
+      id: "rdd", short: "RDD", label: "Regression Discontinuity", pill: "Natural experiment", pillColor: "rgba(99,102,241,0.15)", pillText: "#818cf8",
+      desc: "The 5K impression threshold creates a sharp discontinuity. Accounts just above and just below the gate are near-identical in sophistication — any jump in renewal probability at the cutoff is causal, not confounded.",
       detail: [
-        { title: "Running variable",     body: "Experiment impression count, centred at 5,000." },
-        { title: "Treatment",            body: "Crossing the threshold: experiment becomes 'qualified' and enters the engagement metric." },
-        { title: "Local average effect", body: "Accounts just above 5K renew at approximately +12pp higher rate than accounts just below, within a ±1,500-impression bandwidth." },
-        { title: "Assumption",           body: "No precise manipulation of impression counts around the threshold: verified by checking for bunching in the density of impressions near 5K." },
+        { title: "Running variable", body: "Experiment impression count, centred at 5,000." },
+        { title: "Treatment", body: "Crossing the threshold: experiment becomes 'qualified' and enters the engagement metric." },
+        { title: "Local average effect (LATE)", body: "Accounts just above 5K renew at +12% higher rate than accounts just below, within a ±1,500-impression bandwidth." },
+        { title: "Assumption", body: "No precise manipulation of impression counts around the threshold — verified by checking for bunching in the impression density near 5K." },
       ],
     },
     {
-      id: "iv",
-      label: "Instrumental Variables",
-      short: "IV / 2SLS",
-      pill: "Endogeneity fix",
-      pillColor: "rgba(245,158,11,0.15)",
-      pillText: "#fbbf24",
-      desc: "Dev Agent assistance is used as an instrument: it raises qualification rates (relevance) but has no direct path to renewal other than through experiment quality (exclusion restriction). Two-stage least squares isolates the causal effect.",
+      id: "iv", short: "IV / 2SLS", label: "Instrumental Variables", pill: "Endogeneity fix", pillColor: "rgba(245,158,11,0.15)", pillText: "#fbbf24",
+      desc: "Dev Agent is used as an instrument: it raises qualification rates (relevance) but has no direct path to renewal other than through experiment quality (exclusion restriction). Two-stage least squares isolates the causal effect.",
       detail: [
-        { title: "Instrument",            body: "AI assistance flag (Dev Agent used: yes/no)." },
-        { title: "First stage",           body: "AI assistance → qualification rate. F-stat > 10 confirms instrument relevance: not a weak instrument." },
-        { title: "Second stage",          body: "Predicted qualification (from first stage) → renewal. Removes the selection bias: accounts that self-select into AI tend to be larger, so OLS overstates the true effect." },
-        { title: "IV vs OLS",             body: "IV estimate is ~30% smaller than naive OLS, confirming upward confounding bias when using raw experiment counts." },
+        { title: "Instrument", body: "AI assistance flag (Dev Agent used: yes/no)." },
+        { title: "First stage", body: "AI assistance → qualification rate. F-stat > 10 confirms strong instrument relevance." },
+        { title: "IV vs OLS", body: "IV estimate is ~30% smaller than naive OLS — confirming upward confounding bias from raw experiment counts." },
+        { title: "Exclusion restriction", body: "Dev Agent affects renewal only through experiment quality, not directly. Plausible: agents don't change the product itself." },
       ],
     },
     {
-      id: "psm",
-      label: "Propensity Score Matching",
-      short: "PSM",
-      pill: "Observable confounders",
-      pillColor: "rgba(16,185,129,0.15)",
-      pillText: "#34d399",
-      desc: "Each high-engagement account (≥5 qualified experiments) is matched to a low-engagement account with the same propensity to engage: conditioned on ARR tier and tenure. Compares renewal rates within matched pairs.",
+      id: "psm", short: "PSM", label: "Propensity Score Matching", pill: "Observable confounders", pillColor: "rgba(16,185,129,0.15)", pillText: "#34d399",
+      desc: "Each high-engagement account (≥5 qualified experiments) is matched to a similar low-engagement account based on ARR tier and tenure. Renewal rates compared within matched pairs.",
       detail: [
-        { title: "Propensity model",   body: "Logistic regression: P(high engagement) ~ ARR tier + account tenure." },
-        { title: "Matching",           body: "Nearest-neighbour within caliper 0.05, yielding 148 matched pairs from 183 treated accounts." },
-        { title: "ATT estimate",       body: "Average treatment effect on the treated: +18pp renewal lift for high-engagement accounts vs matched controls (p=0.003)." },
-        { title: "Limitation",         body: "PSM removes observable confounders only. Unobservable confounders (e.g., product-market fit) require IV or RDD for full identification." },
+        { title: "Propensity model", body: "Logistic regression: P(high engagement) ~ ARR tier + account tenure." },
+        { title: "Matching", body: "Nearest-neighbour within caliper 0.05: 148 matched pairs from 183 treated accounts." },
+        { title: "ATT estimate", body: "Average treatment effect on the treated: +18% renewal lift vs matched controls (p=0.003)." },
+        { title: "Limitation", body: "PSM only removes observable confounders. Unobservable confounders (product-market fit) require RDD or IV." },
       ],
     },
   ];
-
   const current = approaches.find((a) => a.id === active)!;
-
   return (
     <div>
-      {/* Tabs */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
-        {approaches.map((a) => (
+        {approaches.map(a => (
           <button key={a.id} onClick={() => setActive(a.id)}
             style={{ padding: "8px 18px", borderRadius: "8px", border: "1px solid", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer", transition: "all .2s",
               background: active === a.id ? "rgba(245,158,11,0.12)" : "transparent",
@@ -392,11 +1003,10 @@ function CausalApproaches() {
           </button>
         ))}
       </div>
-      {/* Active content */}
       <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "24px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
           <span style={{ fontSize: "0.72rem", fontWeight: 700, padding: "3px 10px", borderRadius: "6px", background: current.pillColor, color: current.pillText }}>{current.pill}</span>
-          <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#f1f5f9" }}>{current.label}</h3>
+          <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#f1f5f9", margin: 0 }}>{current.label}</h3>
         </div>
         <p style={{ fontSize: "0.88rem", color: "#9ca3af", lineHeight: 1.7, marginBottom: "20px" }}>{current.desc}</p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
@@ -412,60 +1022,23 @@ function CausalApproaches() {
   );
 }
 
-// ── Directional dependence chain ──────────────────────────────────────────────
-
-function DirectionalChain() {
-  const nodes = [
-    { label: "AI Adoption",         sub: "Dev Agent usage",          color: "#818cf8", icon: "⬡" },
-    { label: "Experiment Quality",  sub: "Better structure & setup",  color: "#a5b4fc", icon: "⬡" },
-    { label: "Qualification Rate",  sub: "≥5K impressions gate",      color: "#f59e0b", icon: "⬡" },
-    { label: "Engagement Metric",   sub: "1+ qualified exp L30D",     color: "#fbbf24", icon: "⬡" },
-    { label: "Value Realised",      sub: "Product intelligence",      color: "#34d399", icon: "⬡" },
-    { label: "Renewal",             sub: "Contract outcome",          color: "#10b981", icon: "⬡" },
-  ];
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-      {nodes.map(({ label, sub, color }, i) => (
-        <React.Fragment key={label}>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "12px 16px", background: "#12121a", borderRadius: i === 0 ? "12px 12px 0 0" : i === nodes.length - 1 ? "0 0 12px 12px" : "0", border: "1px solid #2a2a3a", borderTop: i > 0 ? "none" : "1px solid #2a2a3a" }}>
-            <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: color, flexShrink: 0, boxShadow: `0 0 8px ${color}66` }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "#f1f5f9" }}>{label}</div>
-              <div style={{ fontSize: "0.7rem", color: "#6b7280" }}>{sub}</div>
-            </div>
-            {i < nodes.length - 1 && (
-              <div style={{ fontSize: "0.72rem", color: "#4a4a68", fontFamily: "monospace" }}>causes ↓</div>
-            )}
-          </div>
-        </React.Fragment>
-      ))}
-    </div>
-  );
-}
-
 // ── Python code explorer ──────────────────────────────────────────────────────
 
 const PYTHON_FILES = [
   {
     name: "synthetic_ab_data.py",
-    desc: "Generate synthetic A/B experiment dataset with AI-assisted / standard split",
+    desc: "Generate synthetic A/B dataset with AI-assisted / standard experiment split",
     lines: 75,
     snippet: `def generate_experiments(n: int = 500) -> pd.DataFrame:
-    records = []
     for i in range(n):
-        account    = np.random.choice(ACCOUNT_IDS)
         ai_assisted = np.random.choice(AGENT_TYPES) is not None
-
-        # AI-assisted experiments attract ~25% more traffic —
-        # guided setup reduces misconfigured traffic splits.
+        # AI-assisted experiments attract ~25% more traffic
         base = np.random.lognormal(mean=8.5, sigma=1.2)
         if ai_assisted:
             base *= 1.25
         impressions = int(base)
-
         records.append({
             "experiment_id": f"exp_{i:05d}",
-            "account_id":    account,
             "ai_assisted":   ai_assisted,
             "impressions":   impressions,
             "qualified":     impressions >= 5_000,
@@ -474,97 +1047,75 @@ const PYTHON_FILES = [
   },
   {
     name: "power_analysis.py",
-    desc: "Sample size calculator and MDE table for conversion rate experiments",
+    desc: "Sample size calculator and MDE table (matches the interactive calculator above)",
     lines: 62,
     snippet: `def compute_power(n, baseline_rate, mde, alpha=0.05):
-    """Two-sample z-test power for conversion rate A/B tests."""
+    """Two-sample z-test power for conversion rate experiments."""
     treatment_rate = baseline_rate * (1 + mde)
     pooled = (baseline_rate + treatment_rate) / 2
     se = np.sqrt(2 * pooled * (1 - pooled) / n)
     z_alpha = stats.norm.ppf(1 - alpha / 2)
     z = abs(treatment_rate - baseline_rate) / se
-    # P(reject H0 | H1 true): both tails
-    return float(stats.norm.cdf(z - z_alpha) + stats.norm.cdf(-z - z_alpha))
+    return float(stats.norm.cdf(z - z_alpha) + stats.norm.cdf(-z - z_alpha))`,
+  },
+  {
+    name: "multivariate_analysis.py",
+    desc: "2x2 full factorial MVT — interaction effect detection + counterfactual A/B comparison",
+    lines: 110,
+    snippet: `def interaction_effect(df):
+    """
+    Interaction = delta(headline | social=1) - delta(headline | social=0)
+    Super-additive if positive: headline works better WITH social proof.
+    """
+    def rate(h, s):
+        return df[(df.headline==h) & (df.social_proof==s)].converted.mean()
 
-def compute_mde(n, baseline_rate, alpha=0.05, target_power=0.80):
-    """Binary search: smallest detectable effect at given power."""
-    lo, hi = 0.001, 2.0
-    for _ in range(60):
-        mid = (lo + hi) / 2
-        hi = mid if compute_power(n, baseline_rate, mid, alpha) >= target_power else lo
-        lo = mid if compute_power(n, baseline_rate, mid, alpha) < target_power else lo
-    return round(hi, 4)`,
+    delta_no_social   = rate(1, 0) - rate(0, 0)   # +0.02pp
+    delta_with_social = rate(1, 1) - rate(0, 1)   # +0.11pp
+
+    return {
+        "interaction_pp": round((delta_with_social - delta_no_social) * 100, 2),
+        "super_additive": delta_with_social > delta_no_social,
+    }`,
   },
   {
     name: "bayesian_inference.py",
-    desc: "Beta-Binomial conjugate model: posterior probability, credible intervals, expected loss",
+    desc: "Beta-Binomial conjugate model — posterior probability, credible intervals, expected loss",
     lines: 68,
     snippet: `def analyse(control, treatment, n_samples=100_000):
     """Beta-Binomial posterior via Monte Carlo sampling."""
-    rng = np.random.default_rng(42)
-    # Beta posterior: Beta(1 + conversions, 1 + non-conversions)
     ctrl_s = stats.beta(1 + control.conversions,
-                        1 + control.visitors - control.conversions).rvs(n_samples, random_state=rng)
+                        1 + control.visitors - control.conversions).rvs(n_samples)
     trt_s  = stats.beta(1 + treatment.conversions,
-                        1 + treatment.visitors - treatment.conversions).rvs(n_samples, random_state=rng)
-
-    prob_win   = float(np.mean(trt_s > ctrl_s))
-    lift       = (trt_s - ctrl_s) / ctrl_s
-    exp_loss   = float(np.mean(np.maximum(ctrl_s - trt_s, 0)))
-    ci         = (np.quantile(lift, 0.025), np.quantile(lift, 0.975))
-
-    return {"prob_win": prob_win, "expected_loss": exp_loss,
-            "ci_95": ci, "lift_median": float(np.median(lift))}`,
-  },
-  {
-    name: "cohort_retention.py",
-    desc: "Qualified experiment cohorts segmented by tier → contract renewal analysis",
-    lines: 80,
-    snippet: `def cohort_summary(df: pd.DataFrame) -> pd.DataFrame:
-    tiers = ["0 qualified", "1–4", "5–19", "20+"]
-    return (
-        df.groupby("tier", observed=False)
-          .agg(accounts=("account_id", "count"),
-               renewal_rate=("renewed", "mean"))
-          .reindex(tiers).reset_index()
-    )
-
-# Chi-square: does engagement tier predict renewal?
-contingency = pd.crosstab(df["tier"], df["renewed"])
-chi2, p, dof, _ = stats.chi2_contingency(contingency)
-# χ²=38.7, dof=3, p<0.001
-# → Experiment engagement tier is a statistically significant
-#   predictor of contract renewal.`,
+                        1 + treatment.visitors - treatment.conversions).rvs(n_samples)
+    prob_win = float(np.mean(trt_s > ctrl_s))
+    exp_loss = float(np.mean(np.maximum(ctrl_s - trt_s, 0)))
+    ci       = (np.quantile((trt_s-ctrl_s)/ctrl_s, 0.025),
+                np.quantile((trt_s-ctrl_s)/ctrl_s, 0.975))
+    return {"prob_win": prob_win, "expected_loss": exp_loss, "ci_95": ci}`,
   },
   {
     name: "causal_inference.py",
-    desc: "RDD, instrumental variables, and propensity score matching to isolate causal effects",
+    desc: "RDD, instrumental variables (2SLS), and propensity score matching to isolate causal effects",
     lines: 142,
     snippet: `def rdd_analysis(df, bandwidth=1_500):
     """Sharp RDD at the 5K impression threshold."""
-    threshold = 5_000
-    window = df[(df["impressions"] >= threshold - bandwidth) &
-                (df["impressions"] <= threshold + bandwidth)].copy()
-    window["above"]   = (window["impressions"] >= threshold).astype(int)
-    window["running"] = window["impressions"] - threshold  # centred
-
-    above = window[window["above"] == 1]["renewed"]
-    below = window[window["above"] == 0]["renewed"]
-    late  = above.mean() - below.mean()   # local average treatment effect
+    window = df[(df.impressions >= 5_000 - bandwidth) &
+                (df.impressions <= 5_000 + bandwidth)].copy()
+    above  = window[window.impressions >= 5_000].renewed
+    below  = window[window.impressions <  5_000].renewed
+    late   = above.mean() - below.mean()   # local average treatment effect
     t_stat, p_val = stats.ttest_ind(above, below)
     return {"late": round(late, 3), "p_value": round(p_val, 4),
-            "renewal_above": round(above.mean(), 3),
-            "renewal_below": round(below.mean(), 3)}`,
+            "renewal_above": round(above.mean(), 3)}`,
   },
 ];
 
 function PythonCodeExplorer() {
   const [activeFile, setActiveFile] = useState<string>(PYTHON_FILES[0].name);
   const file = PYTHON_FILES.find((f) => f.name === activeFile)!;
-
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: "0", background: "#0d1117", border: "1px solid #2a2a3a", borderRadius: "14px", overflow: "hidden" }}>
-      {/* File tree */}
+    <div style={{ display: "grid", gridTemplateColumns: "260px 1fr", gap: "0", background: "#0d1117", border: "1px solid #2a2a3a", borderRadius: "14px", overflow: "hidden" }}>
       <div style={{ borderRight: "1px solid #1e1e2e", padding: "16px 0" }}>
         <div style={{ padding: "0 16px 10px", fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#4a4a68" }}>analytics/</div>
         {PYTHON_FILES.map((f) => {
@@ -577,14 +1128,13 @@ function PythonCodeExplorer() {
                 <path d="M8 2v3h3" stroke={on ? "#f59e0b" : "#4a4a68"} strokeWidth="1.2" />
               </svg>
               <div>
-                <div style={{ fontSize: "0.78rem", fontWeight: on ? 700 : 500, color: on ? "#fbbf24" : "#9ca3af", fontFamily: "ui-monospace, monospace" }}>{f.name}</div>
-                <div style={{ fontSize: "0.62rem", color: "#4a4a68", marginTop: "2px", lineHeight: 1.4 }}>{f.lines} lines</div>
+                <div style={{ fontSize: "0.75rem", fontWeight: on ? 700 : 500, color: on ? "#fbbf24" : "#9ca3af", fontFamily: "ui-monospace, monospace" }}>{f.name}</div>
+                <div style={{ fontSize: "0.6rem", color: "#4a4a68", marginTop: "2px" }}>{f.lines} lines</div>
               </div>
             </button>
           );
         })}
       </div>
-      {/* Code panel */}
       <div style={{ padding: "16px 20px", overflow: "auto" }}>
         <div style={{ fontSize: "0.72rem", color: "#6b7280", marginBottom: "12px", lineHeight: 1.5 }}>{file.desc}</div>
         <pre style={{ margin: 0, fontFamily: "ui-monospace, 'Cascadia Code', monospace", fontSize: "0.78rem", lineHeight: 1.75, color: "#cdd6f4", overflowX: "auto", whiteSpace: "pre" as const }}>
@@ -607,8 +1157,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <span className="text-sm font-semibold tracking-wide text-white">Experimentation Science</span>
           <span className="text-sm text-[#6b7280] hidden sm:block">
-            Wahid Tawsif Ratul &nbsp;·&nbsp;{" "}
-            <span className="text-amber-500">Product Analytics Engineer</span>
+            Wahid Tawsif Ratul &nbsp;·&nbsp; <span className="text-amber-500">Product Analytics Engineer</span>
           </span>
         </div>
       </nav>
@@ -621,23 +1170,17 @@ export default function Home() {
               Case Study &nbsp;·&nbsp; Optimizely
             </p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
-              Experimentation{" "}
-              <span className="gradient-heading">Science</span>{" "}
-              Framework
+              Running Experiments{" "}
+              <span className="gradient-heading">That Mean Something</span>
             </h1>
             <p className="text-lg text-[#9ca3af] leading-relaxed mb-10 max-w-xl">
-              I spent two years watching Optimizely customers launch experiments that couldn&apos;t possibly tell them anything.
-              The problem wasn&apos;t effort. It was that nobody had defined what a good experiment actually looks like.
-              This is the framework I built to fix that.
+              A PM can launch an A/B test in minutes. The hard part is designing it so the result
+              is trustworthy, picking the right variables to test, reading the statistics correctly,
+              and knowing whether correlation is actually causation. This is that framework — built at Optimizely,
+              applicable anywhere.
             </p>
             <div className="flex flex-wrap gap-3">
-              {[
-                "≥5K Impression Gate",
-                "Bayesian + Frequentist",
-                "+16pp AI Quality Lift",
-                "RDD · IV · PSM",
-                "Python + SQL",
-              ].map((label) => (
+              {["MVT Interaction Analysis", "Interactive Sample Size Calc", "+16% with Dev Agent", "RDD · IV · PSM Causal", "Works Across Industries"].map(label => (
                 <span key={label} className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border stat-glow"
                   style={{ background: "rgba(245,158,11,0.08)", borderColor: "rgba(245,158,11,0.3)", color: "#fbbf24" }}>
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
@@ -646,15 +1189,14 @@ export default function Home() {
               ))}
             </div>
           </div>
-          {/* Right: mini power curve */}
           <div className="hidden sm:block">
             <MiniPowerCurve />
             <div style={{ marginTop: "12px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
               {[
-                { val: "80%", label: "Statistical power at 5K" },
-                { val: "+16pp", label: "AI qualification lift" },
-                { val: "3",    label: "Causal ID strategies" },
-                { val: "5",    label: "Python analysis scripts" },
+                { val: "80%", label: "Power at 5K impressions" },
+                { val: "+16%", label: "AI qualification rate lift" },
+                { val: "3", label: "Causal identification strategies" },
+                { val: "6", label: "Industries this applies to" },
               ].map(({ val, label }) => (
                 <div key={label} style={{ background: "rgba(245,158,11,0.04)", border: "1px solid rgba(245,158,11,0.12)", borderRadius: "10px", padding: "12px 14px" }}>
                   <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#f59e0b", fontFamily: "ui-monospace, monospace", lineHeight: 1 }}>{val}</div>
@@ -666,419 +1208,265 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Story Arc */}
       <StoryArc />
 
       <main className="max-w-6xl mx-auto px-6 pb-32">
 
-        {/* ── Ch01: THE PROBLEM ─────────────────────────────────────────── */}
+        {/* ── Ch01: THE QUESTION ──────────────────────────────────────── */}
         <ChapterBadge
           num="Ch01"
-          title="The Problem"
-          desc="The PM came to me with a metric request: accounts with at least one experiment running. I pushed back. Running is easy. I needed to define what qualified."
+          title="The Question"
+          desc="Before you build the experiment, you need to know what you're actually testing and why. Most teams skip this step and end up with an inconclusive result they run a second experiment to resolve."
         />
 
-        <section id="problem">
-          <SectionLabel>01: The Problem</SectionLabel>
-          <SectionHeading>Not all experiments are equal.</SectionHeading>
-          <div className="grid sm:grid-cols-3 gap-8 mt-8">
-            {[
-              {
-                title: "Running is easy",
-                body: "Any team can launch an A/B test in minutes. The tooling is commoditised. The hard part is knowing when to trust the result.",
-              },
-              {
-                title: "Trust is hard to earn",
-                body: "An experiment with 200 visitors is not the same as one with 20,000. Without a minimum quality bar, every downstream metric built on experiment data is suspect.",
-              },
-              {
-                title: "Engagement metrics need bedrock",
-                body: "\"EXP Engaged Accounts: 1+ qualified experiment in last 30 days\" is a key retention signal: but it is meaningless if 'qualified' is not statistically grounded.",
-              },
-            ].map(({ title, body }) => (
-              <div key={title} className="p-6 rounded-xl border card-hover" style={{ background: "#12121a", borderColor: "#2a2a3a" }}>
-                <h3 className="font-semibold text-white mb-2">{title}</h3>
-                <p className="text-sm text-[#9ca3af] leading-relaxed">{body}</p>
-              </div>
-            ))}
+        <section id="what-to-test">
+          <SectionLabel>01 — What Should You Test?</SectionLabel>
+          <SectionHeading>Think like a PM: feature, pricing, or packaging?</SectionHeading>
+          <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
+            The best experiment ideas come from a specific business question, not from &ldquo;let&apos;s
+            test the button colour.&rdquo; At Optimizely, we ran experiments across three categories.
+            Each one has a different statistical shape, a different metric, and a different minimum
+            detectable effect worth caring about.
+          </p>
+          <HypothesisCards />
+
+          <div className="mt-14">
+            <h3 className="font-semibold text-white mb-2 text-sm uppercase tracking-wider">This isn&apos;t just an Optimizely problem</h3>
+            <p className="text-[#9ca3af] text-sm leading-relaxed mb-6 max-w-2xl">
+              Every industry that makes product decisions has an experimentation problem. The same statistical framework
+              applies whether you&apos;re testing a checkout flow at an e-commerce company or an appointment booking UI
+              at a healthcare provider. The variables change; the method doesn&apos;t.
+            </p>
+            <IndustryGrid />
           </div>
         </section>
 
-        <ChapterTransition from="The Problem" to="The Framework" />
+        <Divider />
 
-        {/* ── Ch02: THE FRAMEWORK ───────────────────────────────────────── */}
+        {/* ── Ch02: THE DESIGN ────────────────────────────────────────── */}
+        <ChapterTransition from="The Question" to="The Design" />
         <ChapterBadge
           num="Ch02"
-          title="The Framework"
-          desc="Everything in this framework flows from one number: 5,000. The rest is built to justify that threshold, apply it consistently, and capture every statistical output that follows."
+          title="The Design"
+          desc="A well-designed experiment is mostly decided before the first user sees it. Hypothesis quality, experiment type, traffic volume, and platform choice all lock in before launch — and mistakes here can't be corrected after."
         />
 
-        <Divider />
-
-        {/* Lifecycle */}
-        <section id="lifecycle">
-          <SectionLabel>02: Experiment Lifecycle</SectionLabel>
-          <SectionHeading>From hypothesis to decision</SectionHeading>
+        <section id="design">
+          <SectionLabel>02 — Choose Your Experiment Type</SectionLabel>
+          <SectionHeading>A/B, MVT, Feature Flag, or Holdout?</SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
-            Every experiment follows the same path. But most teams treat the running phase as the finish line.
-            The 5,000-impression gate is where data collection ends and inference begins: before it, you&apos;re
-            guessing. The lifecycle only matters if that gate is respected.
+            The choice of experiment type is a design decision, not just a tool choice. MVT requires
+            4x the traffic of a simple A/B test; holdout groups degrade user experience for months.
+            Getting this wrong wastes traffic or produces results you can&apos;t act on.
           </p>
-          <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "22px" }}>
-            <ExperimentLifecycleFlow />
-          </div>
+          <ExperimentTypeSelector />
         </section>
 
         <Divider />
 
-        {/* The 5K standard */}
-        <section id="standard">
-          <SectionLabel>03: The Qualified Experiment Standard</SectionLabel>
+        <section id="sample-size">
+          <SectionLabel>03 — Sample Size and Statistical Power</SectionLabel>
           <SectionHeading>
-            A single threshold.{" "}
-            <span className="text-amber-500">Rigorous justification.</span>
+            How long does this experiment need to run?
           </SectionHeading>
-          <p className="text-[#9ca3af] leading-relaxed mb-10 max-w-2xl">
-            I set this threshold once. It now drives CS health scoring, feeds board-level reporting, and
-            sits at the centre of the commercial attach motion for Opal. Getting it wrong had real consequences,
-            so I made sure the number could survive both a stats review and a business review.
+          <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
+            The most common experiment failure mode isn&apos;t bad analysis — it&apos;s stopping too early.
+            Adjust the sliders to match your baseline conversion rate and the smallest lift you care about.
+            The calculator tells you whether 5,000 impressions is enough, and how long to run at your
+            current traffic volume.
           </p>
-          <div className="rounded-2xl border p-8 mb-10 flex flex-col sm:flex-row items-start sm:items-center gap-6"
-            style={{ background: "rgba(245,158,11,0.06)", borderColor: "rgba(245,158,11,0.25)" }}>
-            <div className="flex-shrink-0">
-              <span className="text-5xl font-bold tabular-nums" style={{ color: "#f59e0b" }}>5,000</span>
-              <p className="text-sm text-amber-600 font-medium mt-1">Minimum impressions</p>
-            </div>
-            <div className="text-[#9ca3af] text-sm leading-relaxed">
-              <p className="mb-2">
-                At a baseline conversion rate of <strong className="text-white">2–5%</strong>,
-                5,000 impressions per variation provides approximately{" "}
-                <strong className="text-white">80% statistical power</strong> to detect a
-                10% relative lift at α = 0.05: the standard in industrial experimentation science.
-              </p>
-              <p>
-                The timestamp at which the threshold is crossed is stored separately, enabling
-                time-to-qualified analysis and velocity cohort comparisons.
-              </p>
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-6">
-            {[
-              { title: "Engagement signal", body: "\"EXP Engaged Accounts: 1+ qualified experiment in last 30 days\" is the primary engagement KPI for Optimizely's Experimentation product. It uses this exact threshold as its filter: co-designed with the EXP Product Manager." },
-              { title: "Cohort quality",    body: "Accounts that consistently clear the 5,000-impression bar are running tests with sufficient traffic to trust results: a leading indicator of experimentation maturity and platform engagement." },
-            ].map(({ title, body }) => (
-              <div key={title} className="p-6 rounded-xl border card-hover" style={{ background: "#12121a", borderColor: "#2a2a3a" }}>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
-                  <h3 className="font-semibold text-white">{title}</h3>
-                </div>
-                <p className="text-sm text-[#9ca3af] leading-relaxed">{body}</p>
-              </div>
-            ))}
-          </div>
-          {/* My decision callout */}
-          <div style={{ marginTop: "24px", background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "12px", padding: "16px 20px" }}>
-            <div style={{ fontSize: "0.6rem", fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#f59e0b", marginBottom: "6px" }}>My decision</div>
+          <SampleSizeCalculator />
+          <div style={{ marginTop: "20px", background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.15)", borderRadius: "12px", padding: "16px 20px" }}>
+            <div style={{ fontSize: "0.6rem", fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#f59e0b", marginBottom: "6px" }}>Why 5,000 is the gate</div>
             <p style={{ fontSize: "0.85rem", color: "#9ca3af", lineHeight: 1.7, margin: 0 }}>
-              I co-designed this threshold with the EXP Product Manager. The commercial constraint was
-              real: too low means &quot;engaged account&quot; is meaningless for CS health scoring;
-              too high means accounts with legitimate programmes fall out of the metric. 5,000 is the
-              number that survives both the statistics and the business review.
+              I co-designed the 5,000-impression threshold with the EXP Product Manager. At a typical 2–5% baseline conversion
+              rate, that&apos;s the minimum for 80% power to detect a 10% relative lift at α=0.05 — the industrial standard
+              for meaningful business effects. Too low and &ldquo;engaged account&rdquo; is meaningless for CS health scoring;
+              too high and legitimate programmes fall out of the metric. 5,000 survived both the stats review and the business review.
             </p>
           </div>
         </section>
 
         <Divider />
 
-        {/* Power analysis */}
-        <section id="power">
-          <SectionLabel>04: Power Analysis</SectionLabel>
-          <SectionHeading>Why <span className="text-amber-500">5,000</span>: the statistical case</SectionHeading>
+        <section id="run">
+          <SectionLabel>04 — Setting Up in Optimizely</SectionLabel>
+          <SectionHeading>Web Experimentation vs Feature Experimentation</SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
-            The threshold is not arbitrary. At a typical 2–5% baseline conversion rate, 5,000
-            impressions per variation achieves 80% statistical power to detect a 10% relative lift —
-            the industrial standard for meaningful business effects.
+            Optimizely has two distinct products for running experiments, and choosing the wrong one
+            creates real problems: client-side tests can&apos;t handle server-side features, and SDK-based
+            tests can&apos;t target by URL pattern. Here&apos;s the decision rule I used.
           </p>
-          <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "22px" }}>
-            <PowerAnalysisViz />
-          </div>
-        </section>
+          <OptimizelyProductGuide />
 
-        <Divider />
-
-        {/* Statistical framework */}
-        <section id="stats">
-          <SectionLabel>05: Statistical Framework</SectionLabel>
-          <SectionHeading>
-            Dual inference:{" "}
-            <span className="text-amber-500">Frequentist</span> &amp;{" "}
-            <span className="text-amber-500">Bayesian</span>
-          </SectionHeading>
-          <p className="text-[#9ca3af] leading-relaxed mb-10 max-w-2xl">
-            The data model stores both statistical paradigms side by side —
-            allowing analysts to cross-validate conclusions and giving product
-            teams the flexibility to apply either framework per decision context.
-          </p>
-          <div className="grid sm:grid-cols-2 gap-6">
-            {/* Frequentist */}
-            <div className="p-6 rounded-xl border" style={{ background: "#12121a", borderColor: "#2a2a3a" }}>
-              <div className="flex items-center gap-3 mb-5">
-                <span className="px-2.5 py-1 rounded text-xs font-bold tracking-wide uppercase"
-                  style={{ background: "rgba(99,102,241,0.15)", color: "#818cf8" }}>Frequentist</span>
-              </div>
-              <ul className="space-y-3">
-                {[
-                  { field: "p-value",          note: "Two-tailed significance test" },
-                  { field: "Significance flag", note: "Boolean: p < 0.05" },
-                  { field: "Relative lift",     note: "Lift % vs baseline variation" },
-                  { field: "Visitor count",     note: "Per-variation sample size" },
-                  { field: "Rate variance",     note: "Conversion rate variance for power calculation" },
-                ].map(({ field, note }) => (
-                  <li key={field} className="flex items-start gap-3">
-                    <code className="text-xs px-2 py-0.5 rounded flex-shrink-0 mt-0.5"
-                      style={{ background: "rgba(99,102,241,0.1)", color: "#a5b4fc", fontFamily: "monospace" }}>{field}</code>
-                    <span className="text-sm text-[#9ca3af]">{note}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            {/* Bayesian */}
-            <div className="p-6 rounded-xl border" style={{ background: "#12121a", borderColor: "#2a2a3a" }}>
-              <div className="flex items-center gap-3 mb-5">
-                <span className="px-2.5 py-1 rounded text-xs font-bold tracking-wide uppercase"
-                  style={{ background: "rgba(245,158,11,0.15)", color: "#fbbf24" }}>Bayesian</span>
-              </div>
-              <ul className="space-y-3">
-                {[
-                  { field: "Posterior probability", note: "Probability variation is winning" },
-                  { field: "Credible interval",     note: "Range of plausible lift values" },
-                  { field: "Expected loss",         note: "Risk of choosing incorrectly" },
-                  { field: "Lift status",           note: "'winning' | 'losing' | 'inconclusive'" },
-                  { field: "Visitors remaining",    note: "Bayesian estimate to reach significance" },
-                ].map(({ field, note }) => (
-                  <li key={field} className="flex items-start gap-3">
-                    <code className="text-xs px-2 py-0.5 rounded flex-shrink-0 mt-0.5"
-                      style={{ background: "rgba(245,158,11,0.1)", color: "#fbbf24", fontFamily: "monospace" }}>{field}</code>
-                    <span className="text-sm text-[#9ca3af]">{note}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-5 p-4 rounded-lg text-xs text-[#9ca3af] leading-relaxed" style={{ background: "#0d1117", border: "1px solid #2a2a3a" }}>
-                <span className="text-amber-500 font-semibold">Why both paradigms?</span>{" "}
-                Frequentist p-values answer &quot;is there an effect?&quot;: Bayesian posteriors answer &quot;how likely is the variation winning?&quot;
-                Storing both lets teams apply whichever framework fits their decision context.
-              </div>
+          <div className="mt-12">
+            <h3 className="font-semibold text-white mb-5 text-sm uppercase tracking-wider">The lifecycle from design to decision</h3>
+            <p className="text-[#9ca3af] text-sm leading-relaxed mb-6 max-w-2xl">
+              Every experiment follows the same path. Most teams treat the running phase as the finish line.
+              The 5,000-impression gate is where data collection ends and inference begins: before it, you&apos;re guessing.
+            </p>
+            <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "22px" }}>
+              <ExperimentLifecycleFlow />
             </div>
           </div>
         </section>
 
-        <Divider />
+        <ChapterTransition from="The Design" to="The Analysis" />
 
-        {/* Data model */}
-        <section id="model">
-          <SectionLabel>06: Experiment Data Model</SectionLabel>
-          <SectionHeading>
-            <span className="text-amber-500">Experiment Results</span>: core analytics grain
-          </SectionHeading>
-          <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
-            The central fact table stores one row per experiment × variation × metric combination.
-            This grain enables per-metric statistical inference across all experiments and joins
-            cleanly to account and ARR data via the shared identity key.
-          </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { group: "Experiment identity",   fields: ["Experiment ID", "Variation name", "Metric name", "Experiment type", "Product line"],                                          color: "#fbbf24" },
-              { group: "Frequentist outputs",   fields: ["p-value (two-tailed)", "Significance flag (p < 0.05)", "Relative lift %", "Visitor count per variation", "Rate variance"], color: "#818cf8" },
-              { group: "Bayesian outputs",      fields: ["Posterior probability", "Credible interval", "Expected loss", "Lift status", "Estimated visitors remaining"],                 color: "#34d399" },
-              { group: "Impression tracking",   fields: ["Lifetime impressions", "Threshold crossed timestamp", "Daily impression rollup", "Traffic allocation"],                       color: "#f59e0b" },
-              { group: "Account linkage",       fields: ["Account / project identifier", "Cross-product identity key", "ARR tier (via dimension join)", "Renewal outcome (via dimension join)"], color: "#a5b4fc" },
-              { group: "AI assistance flags",   fields: ["AI-assisted flag", "Agent type used", "Setup method", "Creation timestamp"],                                                 color: "#10b981" },
-            ].map(({ group, fields, color }) => (
-              <div key={group} className="p-5 rounded-xl border card-hover" style={{ background: "#12121a", borderColor: "#2a2a3a" }}>
-                <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color }}>{group}</div>
-                {fields.map((f) => (
-                  <div key={f} className="flex items-center gap-2 py-1.5 border-b last:border-0" style={{ borderColor: "#1e1e2e" }}>
-                    <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: color }} />
-                    <span className="text-xs text-[#9ca3af]">{f}</span>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <ChapterTransition from="The Framework" to="The Analysis" />
-
-        {/* ── Ch03: THE ANALYSIS ───────────────────────────────────────── */}
+        {/* ── Ch03: THE ANALYSIS ──────────────────────────────────────── */}
         <ChapterBadge
           num="Ch03"
           title="The Analysis"
-          desc="Once the framework existed, I ran the analysis. The AI finding surprised me. The retention signal didn't. The causal work was the hardest part to get right."
+          desc="Once the data is in, three questions matter: is the effect real, which combination won, and can we trust the number without running it through a causal lens first?"
         />
 
         <Divider />
 
-        {/* AI quality */}
-        <section id="ai-quality">
-          <SectionLabel>07: AI-Assisted Experiment Quality</SectionLabel>
+        <section id="mvt">
+          <SectionLabel>05 — Multivariate Testing in Practice</SectionLabel>
           <SectionHeading>
-            Does AI assistance change{" "}
-            <span className="text-amber-500">experiment quality?</span>
+            The case for full factorial design:{" "}
+            <span className="text-amber-500">interaction effects are real</span>
           </SectionHeading>
-          <p className="text-[#9ca3af] leading-relaxed mb-10 max-w-2xl">
-            When Dev Agent launched, the first thing I wanted to know wasn&apos;t velocity.
-            I wanted to know whether AI-assisted experiments were actually better: structurally sounder,
-            with enough traffic to produce a trustworthy result. The answer turned out to be yes,
-            and by a margin large enough to build a commercial argument around.
+          <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
+            Two separate A/B tests would have told us the new headline doesn&apos;t work and social proof
+            maybe works. The full factorial told us the actual answer. Click the cells to see what each
+            combination did, and why sequential A/B testing would have shipped the wrong variant.
           </p>
-          <div className="grid sm:grid-cols-3 gap-6 mb-10">
+          <MVTResultsMatrix />
+          <div className="mt-8 grid sm:grid-cols-3 gap-4">
             {[
-              { metric: "AI-Assisted Experiment Ratio",  desc: "Share of experiments per account created with Dev Agent assistance: segmented by product line (Web vs Feature Experimentation).",                                                                                pill: "Ratio metric",    pillColor: "rgba(99,102,241,0.15)",  pillText: "#818cf8" },
-              { metric: "Dev Agent Qualification Rate",  desc: "Of AI-assisted experiments, what proportion cleared the ≥5,000 impression threshold? Compared against the baseline qualification rate for standard experiments.",                                            pill: "Quality metric",  pillColor: "rgba(245,158,11,0.15)",  pillText: "#fbbf24" },
-              { metric: "Experiment Velocity",           desc: "Time from experiment creation to first 5K impressions. Measures whether Dev Agent shortens the time-to-qualified: and whether faster setup correlates with or trades off against quality.",                  pill: "Velocity metric", pillColor: "rgba(16,185,129,0.15)",  pillText: "#34d399" },
-            ].map(({ metric, desc, pill, pillColor, pillText }) => (
-              <div key={metric} className="p-6 rounded-xl border flex flex-col gap-3 card-hover" style={{ background: "#12121a", borderColor: "#2a2a3a" }}>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded w-fit" style={{ background: pillColor, color: pillText }}>{pill}</span>
-                <h3 className="font-semibold text-white text-sm leading-snug">{metric}</h3>
-                <p className="text-xs text-[#9ca3af] leading-relaxed">{desc}</p>
+              { title: "Main effects are misleading",     body: "Marginal averages hide interaction structure. The headline &ldquo;didn't work&rdquo; in one condition and worked very well in another — the average looked flat." },
+              { title: "Sample size scales with cells",   body: "A 2×2 factorial needs ~4x the traffic of a simple A/B test for equal power per cell. Budget this before committing to MVT." },
+              { title: "Fractional factorial is a tradeoff", body: "If traffic is limited, fractional factorial designs test a subset of combinations. You can detect main effects but may miss specific interaction terms." },
+            ].map(({ title, body }) => (
+              <div key={title} className="p-5 rounded-xl border card-hover" style={{ background: "#12121a", borderColor: "#2a2a3a" }}>
+                <h4 className="font-semibold text-white text-sm mb-2">{title}</h4>
+                <p className="text-xs text-[#9ca3af] leading-relaxed" dangerouslySetInnerHTML={{ __html: body }} />
               </div>
             ))}
           </div>
-          <div className="p-6 rounded-xl border" style={{ background: "rgba(16,185,129,0.04)", borderColor: "rgba(16,185,129,0.2)" }}>
-            <h3 className="font-semibold text-white mb-2 text-sm">Hypothesis</h3>
-            <p className="text-sm text-[#9ca3af] leading-relaxed">
-              AI-assisted experiments may show <em className="text-emerald-400">higher qualification rates</em>{" "}
-              because Dev Agent guides users toward better-structured test setups with appropriate traffic
-              allocation. Alternatively, if AI lowers the barrier to launching experiments, it may increase
-              the volume of underpowered experiments: a testable prediction that the data adjudicates.
-            </p>
-          </div>
         </section>
 
         <Divider />
 
-        {/* Quality finding */}
-        <section id="finding">
-          <SectionLabel>08: Quality Finding</SectionLabel>
-          <SectionHeading>Dev Agent improves quality, not just velocity</SectionHeading>
-          <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
-            58% of standard experiments cleared the quality bar. 74% of Dev Agent-assisted experiments did.
-            That&apos;s not a velocity story: it&apos;s a quality story. I used this to anchor the commercial
-            argument that selling Opal into Experimentation accounts wasn&apos;t just an upsell — it made
-            their core product work better.
-          </p>
-          <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "22px" }}>
-            <AIQualityComparison />
-          </div>
-        </section>
-
-        <Divider />
-
-        {/* Cohort retention */}
-        <section id="cohort">
-          <SectionLabel>09: Cohort Retention Analysis</SectionLabel>
+        <section id="stats">
+          <SectionLabel>06 — Frequentist vs Bayesian</SectionLabel>
           <SectionHeading>
-            Qualified experiments &amp;{" "}
-            <span className="text-amber-500">account retention</span>
+            Two frameworks, one experiment — <span className="text-amber-500">different questions answered</span>
           </SectionHeading>
-          <p className="text-[#9ca3af] leading-relaxed mb-10 max-w-2xl">
-            I built this analysis to answer a question the CS team kept asking: why do some accounts
-            run experiments for years while others go quiet after the first quarter? I suspected the
-            experiments themselves were the signal. The data confirmed it, by a lot.
+          <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
+            At Optimizely, the data model stores both statistical paradigms per experiment × variation × metric.
+            The choice isn&apos;t either/or — it&apos;s knowing which question each one answers.
+            Toggle between them to see what the same experiment result looks like through each lens.
           </p>
-          <div className="grid sm:grid-cols-2 gap-8 mb-10">
-            {/* Analysis pipeline — visual flow */}
-            <div>
-              <h3 className="font-semibold text-white mb-5 text-sm uppercase tracking-wider">How I ran it</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-                {[
-                  { step: "01", title: "Start with accounts",  desc: "ARR tier, contract dates, renewal outcome. This is the unit of analysis: not experiments, not users.", color: "#a5b4fc" },
-                  { step: "02", title: "Count qualified runs",  desc: "How many experiments cleared ≥5K impressions in the 90 days before their renewal date? Joined through the project-to-account mapping.", color: "#fbbf24" },
-                  { step: "03", title: "Bucket by tier",        desc: "Four cohorts: zero runs, 1–4, 5–19, 20+. The renewal rate gap between the first and last cohort is 49 percentage points.", color: "#f59e0b" },
-                  { step: "04", title: "Remove confounders",    desc: "Logistic regression. ARR tier and account tenure go in as controls. Experiment engagement remains significant after both are removed.", color: "#34d399" },
-                ].map(({ step, title, desc, color }, i, arr) => (
-                  <div key={step} style={{ display: "flex", gap: "0" }}>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "36px", flexShrink: 0 }}>
-                      <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: `${color}18`, border: `1px solid ${color}44`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <span style={{ fontSize: "0.58rem", fontWeight: 800, color }}>{step}</span>
-                      </div>
-                      {i < arr.length - 1 && <div style={{ width: "1px", flex: 1, background: "rgba(255,255,255,0.06)", margin: "4px 0" }} />}
-                    </div>
-                    <div style={{ paddingLeft: "12px", paddingBottom: i < arr.length - 1 ? "20px" : "0" }}>
-                      <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "#f1f5f9", marginBottom: "3px" }}>{title}</p>
-                      <p style={{ fontSize: "0.75rem", color: "#9ca3af", lineHeight: 1.6, margin: 0 }}>{desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* Data relationships */}
-            <div>
-              <h3 className="font-semibold text-white mb-4 text-sm uppercase tracking-wider">Data relationships</h3>
-              <div className="space-y-3">
-                {[
-                  { entity: "Account dimension",       fields: ["ARR and contract tier", "Contract start / end dates", "Renewal outcome", "Cross-product identity key"] },
-                  { entity: "Experimentation projects", fields: ["Project-to-account mapping", "Product line (Web / Feature)"] },
-                  { entity: "Experiment dimension",     fields: ["Lifetime impressions", "Experiment status", "AI assistance flag", "Experiment type"] },
-                  { entity: "Experiment results",       fields: ["Statistical significance", "Lift status", "Variation outcomes"] },
-                ].map(({ entity, fields }) => (
-                  <div key={entity} className="p-4 rounded-xl border" style={{ background: "#0d1117", borderColor: "#2a2a3a" }}>
-                    <div className="text-sm font-semibold mb-2 text-amber-500">{entity}</div>
-                    {fields.map((f) => (
-                      <div key={f} className="flex items-center gap-2 py-0.5">
-                        <span className="text-xs" style={{ color: "#6e7781" }}>└──</span>
-                        <span className="text-xs text-[#9ca3af]">{f}</span>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
+          <StatsFramework />
+        </section>
+
+        <ChapterTransition from="The Analysis" to="AI + Causal" />
+
+        {/* ── Ch04: AI + CAUSAL ───────────────────────────────────────── */}
+        <ChapterBadge
+          num="Ch04"
+          title="AI + Causal"
+          desc="Two questions I had to answer for leadership: does AI actually make experiments better, or just faster? And does the retention correlation prove causation, or just correlation?"
+        />
+
+        <Divider />
+
+        <section id="ai-accel">
+          <SectionLabel>07 — How AI Accelerates Every Phase</SectionLabel>
+          <SectionHeading>
+            Dev Agent + Opal: before and after
+          </SectionHeading>
+          <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
+            When Dev Agent launched, I wanted to know whether it made experiments better — not just
+            faster. The acceleration flow below shows what changes at each phase. The quality finding
+            below it shows what the data said.
+          </p>
+          <AIAccelerationFlow />
+
+          <div className="mt-12">
+            <h3 className="font-semibold text-white mb-5 text-sm uppercase tracking-wider">The quality finding</h3>
+            <p className="text-[#9ca3af] text-sm leading-relaxed mb-6 max-w-2xl">
+              58% of standard experiments cleared the quality bar. 74% of Dev Agent-assisted ones did. That&apos;s a quality story,
+              not a velocity story. I used this to anchor the commercial argument for the Experimentation→Opal attach motion.
+            </p>
+            <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "22px" }}>
+              <AIQualityComparison />
             </div>
           </div>
+        </section>
+
+        <Divider />
+
+        <section id="cohort">
+          <SectionLabel>08 — Experiment Engagement and Retention</SectionLabel>
+          <SectionHeading>
+            Qualified experiments predict renewal{" "}
+            <span className="text-amber-500">by a lot</span>
+          </SectionHeading>
+          <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
+            I built this analysis to answer a question the CS team kept asking: why do some accounts
+            run experiments for years while others go quiet after the first quarter? The answer was in
+            the experiments themselves.
+          </p>
           <RetentionCohortChart />
         </section>
 
         <Divider />
 
-        {/* Causal inference */}
         <section id="causal">
-          <SectionLabel>10: Causal Inference</SectionLabel>
+          <SectionLabel>09 — Causal Inference: Is This Actually Causation?</SectionLabel>
           <SectionHeading>
-            Correlation or{" "}
-            <span className="text-amber-500">causation?</span>
+            Here&apos;s the uncomfortable truth about the retention finding
           </SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-10 max-w-2xl">
-            Here&apos;s the uncomfortable truth about the retention finding: it could all be selection bias.
             Large, well-resourced accounts experiment more and renew more regardless — correlation
-            isn&apos;t causation. Before I could put this number in front of leadership, I had to rule that out.
-            Three identification strategies later, the signal held up.
+            isn&apos;t causation. Before I could put this number in front of leadership, I had to rule out
+            the selection bias story. Three identification strategies later, the signal held up.
           </p>
 
-          {/* Causal DAG */}
           <div className="mb-10">
             <CausalDAG />
           </div>
 
-          {/* Directional dependence */}
           <div className="grid sm:grid-cols-2 gap-8 mb-10">
             <div>
-              <h3 className="font-semibold text-white mb-5 text-sm uppercase tracking-wider">Directional Dependence Chain</h3>
+              <h3 className="font-semibold text-white mb-5 text-sm uppercase tracking-wider">Directional Dependence</h3>
               <p className="text-sm text-[#9ca3af] leading-relaxed mb-5">
-                Directional dependence testing establishes the causal ordering: does experiment
-                engagement predict future renewal better than renewal predicts future experimentation?
-                Temporal sequencing: engagement measured in L90D preceding the renewal date —
-                supports the forward causal direction.
+                Temporal ordering establishes the causal direction: experiment engagement measured in L90D precedes
+                the renewal date. The question is whether engagement predicts future renewal better than renewal
+                predicts future experimentation. The data supports the forward direction.
               </p>
-              <DirectionalChain />
+              <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
+                {[
+                  { label: "AI Adoption",         sub: "Dev Agent usage",         color: "#818cf8" },
+                  { label: "Experiment Quality",  sub: "Better structure, setup",  color: "#a5b4fc" },
+                  { label: "Qualification Rate",  sub: "≥5K impressions gate",     color: "#f59e0b" },
+                  { label: "Engagement Metric",   sub: "1+ qualified exp L30D",    color: "#fbbf24" },
+                  { label: "Value Realised",       sub: "Product intelligence",     color: "#34d399" },
+                  { label: "Renewal",             sub: "Contract outcome",         color: "#10b981" },
+                ].map(({ label, sub, color }, i, arr) => (
+                  <div key={label} style={{ display: "flex", alignItems: "center", gap: "0", padding: "11px 16px", background: "#12121a", borderRadius: i === 0 ? "12px 12px 0 0" : i === arr.length - 1 ? "0 0 12px 12px" : "0", border: "1px solid #2a2a3a", borderTop: i > 0 ? "none" : "1px solid #2a2a3a" }}>
+                    <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: color, flexShrink: 0, boxShadow: `0 0 8px ${color}66`, marginRight: "14px" }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#f1f5f9" }}>{label}</div>
+                      <div style={{ fontSize: "0.68rem", color: "#6b7280" }}>{sub}</div>
+                    </div>
+                    {i < arr.length - 1 && <div style={{ fontSize: "0.7rem", color: "#4a4a68", fontFamily: "monospace" }}>causes ↓</div>}
+                  </div>
+                ))}
+              </div>
             </div>
             <div>
               <h3 className="font-semibold text-white mb-5 text-sm uppercase tracking-wider">Multivariate Confounders</h3>
               <div className="space-y-3">
                 {[
-                  { name: "ARR Tier",            effect: "Large accounts run more experiments AND have higher baseline renewal: creates spurious correlation",       severity: "High",   color: "#ef4444" },
-                  { name: "Account Tenure",       effect: "Long-tenured accounts are more experimentally mature AND more sticky: correlated but not causal",          severity: "Medium", color: "#f59e0b" },
-                  { name: "Product Adoption",     effect: "Accounts using more Optimizely products have more surfaces to experiment on: partially observable",          severity: "Medium", color: "#f59e0b" },
-                  { name: "Industry Vertical",    effect: "Some verticals (FinTech, e-commerce) are structurally more experimentation-mature: often unobservable",      severity: "Low",    color: "#6b7280" },
+                  { name: "ARR Tier",        effect: "Large accounts experiment more AND have higher baseline renewal. Creates a spurious correlation even with zero causal effect.",   severity: "High",   color: "#ef4444" },
+                  { name: "Account Tenure",  effect: "Long-tenured accounts are more experimentally mature AND more sticky. Partially observable via contract start date.",               severity: "Medium", color: "#f59e0b" },
+                  { name: "Product Adoption",effect: "Accounts using more Optimizely products have more surfaces to run experiments on — correlated with both engagement and retention.", severity: "Medium", color: "#f59e0b" },
+                  { name: "Industry Vertical",effect: "FinTech and e-commerce are structurally more experimentation-mature. Often unobservable at the account level.",                    severity: "Low",    color: "#6b7280" },
                 ].map(({ name, effect, severity, color }) => (
                   <div key={name} className="p-4 rounded-xl border" style={{ background: "#12121a", borderColor: "#2a2a3a" }}>
                     <div className="flex items-center justify-between mb-1.5">
@@ -1092,17 +1480,15 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Three identification strategies */}
-          <h3 className="font-semibold text-white mb-5 text-sm uppercase tracking-wider">Identification Strategies</h3>
+          <h3 className="font-semibold text-white mb-5 text-sm uppercase tracking-wider">Three identification strategies</h3>
           <CausalApproaches />
 
-          {/* Synthesis */}
           <div style={{ marginTop: "24px", background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.18)", borderRadius: "12px", padding: "20px 24px" }}>
             <div style={{ fontSize: "0.6rem", fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#10b981", marginBottom: "8px" }}>My conclusion</div>
             <p style={{ fontSize: "0.88rem", color: "#9ca3af", lineHeight: 1.75, margin: 0 }}>
               Three methods, one answer. The RDD is the cleanest: nobody engineers their impression count
-              to land at exactly 4,999 or 5,001. That near-randomness around the threshold gives us a
-              genuinely causal estimate — +12pp renewal lift from crossing the qualification gate.
+              to land at exactly 4,999 or 5,001. That near-randomness around the threshold gives a
+              genuinely causal estimate — +12% renewal lift from crossing the qualification gate.
               IV and PSM converged on the same direction. I took this to leadership. The engagement metric
               went into CS health scoring and the Experimentation→Opal attach motion with that backing.
             </p>
@@ -1111,19 +1497,17 @@ export default function Home() {
 
         <Divider />
 
-        {/* Python analysis code */}
+        {/* Code */}
         <section id="code">
-          <SectionLabel>11: Python Analysis Code</SectionLabel>
-          <SectionHeading>Working analysis scripts on GitHub</SectionHeading>
+          <SectionLabel>10 — Analysis Code</SectionLabel>
+          <SectionHeading>Working scripts on GitHub</SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
-            All analysis runs on synthetic data: same schema shapes as the Optimizely platform output,
-            but generated from scratch. The scripts are self-contained, runnable with standard Python
-            scientific libraries.
+            All analysis runs on synthetic data — same schema shapes as the Optimizely platform output,
+            generated from scratch. Five self-contained Python scripts, runnable with standard scientific libraries.
           </p>
           <PythonCodeExplorer />
           <div style={{ marginTop: "16px", display: "flex", gap: "12px", flexWrap: "wrap" }}>
-            <a href="https://github.com/ratul003/experimentation-science"
-              target="_blank" rel="noopener noreferrer"
+            <a href="https://github.com/ratul003/experimentation-science" target="_blank" rel="noopener noreferrer"
               style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: "10px", textDecoration: "none", color: "#fbbf24", fontSize: "0.85rem", fontWeight: 600 }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
@@ -1132,29 +1516,30 @@ export default function Home() {
             </a>
             <div style={{ padding: "10px 16px", background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "10px", fontSize: "0.75rem", color: "#6b7280", display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ color: "#4ade80" }}>✓</span>
-              <span>Runs on Python 3.11+ · numpy · scipy · pandas</span>
+              <span>Python 3.11+ · numpy · scipy · pandas</span>
             </div>
           </div>
         </section>
 
         <Divider />
 
-        {/* Tech stack */}
+        {/* Stack */}
         <section id="stack">
-          <SectionLabel>12: Tech Stack</SectionLabel>
-          <SectionHeading>Built with</SectionHeading>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-6">
+          <SectionLabel>11 — Tech Stack</SectionLabel>
+          <SectionHeading>Tools used</SectionHeading>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-6">
             {[
-              { name: "Snowflake",          color: "#29b5e8", cat: "Data Warehouse" },
-              { name: "Python",             color: "#3776AB", cat: "Analysis"       },
-              { name: "SQL",                color: "#f59e0b", cat: "Querying"       },
-              { name: "Bayesian Stats",     color: "#8b5cf6", cat: "Inference"      },
-              { name: "Causal Inference",   color: "#10b981", cat: "Identification" },
+              { name: "Snowflake",        color: "#29b5e8", cat: "Warehouse"     },
+              { name: "Optimizely",       color: "#f59e0b", cat: "Platform"      },
+              { name: "Python",           color: "#3776AB", cat: "Analysis"      },
+              { name: "SQL",              color: "#fbbf24", cat: "Querying"      },
+              { name: "Bayesian Stats",   color: "#8b5cf6", cat: "Inference"     },
+              { name: "Causal Inference", color: "#10b981", cat: "Identification" },
             ].map(({ name, color, cat }) => (
               <div key={name} style={{ background: `${color}10`, border: `1px solid ${color}28`, borderRadius: "12px", padding: "14px", display: "flex", flexDirection: "column" as const, gap: "6px" }}>
                 <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: color }} />
-                <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "#f1f5f9" }}>{name}</div>
-                <div style={{ fontSize: "0.65rem", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.08em", color, opacity: 0.85 }}>{cat}</div>
+                <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#f1f5f9" }}>{name}</div>
+                <div style={{ fontSize: "0.62rem", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.08em", color, opacity: 0.85 }}>{cat}</div>
               </div>
             ))}
           </div>
@@ -1171,8 +1556,7 @@ export default function Home() {
               Wahid Tawsif Ratul &nbsp;·&nbsp; Product Analytics Engineer at Optimizely
             </div>
           </div>
-          <a href="https://github.com/ratul003/experimentation-science"
-            target="_blank" rel="noopener noreferrer"
+          <a href="https://github.com/ratul003/experimentation-science" target="_blank" rel="noopener noreferrer"
             style={{ borderColor: "#2a2a3a" }}
             className="flex items-center gap-2 border rounded-lg px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:border-amber-700 transition-colors flex-shrink-0">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

@@ -3,16 +3,16 @@
 import { useEffect, useState } from "react";
 
 const SECTIONS = [
-  { id: "problem",    label: "Problem"       },
-  { id: "lifecycle",  label: "Lifecycle"     },
-  { id: "standard",   label: "5K Standard"   },
-  { id: "stats",      label: "Statistics"    },
-  { id: "model",      label: "Data Model"    },
-  { id: "ai-quality", label: "AI Quality"    },
-  { id: "cohort",     label: "Cohort"        },
-  { id: "causal",     label: "Causal"        },
-  { id: "code",       label: "Analysis Code" },
-  { id: "stack",      label: "Stack"         },
+  { id: "what-to-test",  label: "What to Test"  },
+  { id: "design",        label: "Design"         },
+  { id: "sample-size",   label: "Sample Size"    },
+  { id: "run",           label: "Run"            },
+  { id: "mvt",           label: "Multivariate"   },
+  { id: "stats",         label: "Statistics"     },
+  { id: "ai-accel",      label: "AI Boost"       },
+  { id: "cohort",        label: "Cohort"         },
+  { id: "causal",        label: "Causal"         },
+  { id: "code",          label: "Code"           },
 ];
 
 export default function SectionNav() {
