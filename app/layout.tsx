@@ -9,6 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://experimentation-science.vercel.app"),
   title: "Experimentation Science Framework",
   description:
     "Statistical rigour for A/B testing at scale — defining what makes an experiment trustworthy across 3.6 million experiments. A case study by Wahid Tawsif Ratul, Product Analytics Engineer at Optimizely.",
