@@ -147,11 +147,11 @@ function ExperimentLifecycleFlow() {
 
 function PowerAnalysisViz() {
   const rows = [
-    { impressions: "1,000",  power: 12, mde: "~35%", risk: "Very high — results unreliable" },
-    { impressions: "2,500",  power: 38, mde: "~22%", risk: "High — only detects large effects" },
-    { impressions: "5,000",  power: 80, mde: "~10%", risk: "Acceptable — industry standard", qualified: true },
-    { impressions: "10,000", power: 95, mde: "~7%",  risk: "Strong — detects smaller effects" },
-    { impressions: "25,000+",power: 99, mde: "~4%",  risk: "Excellent — high sensitivity" },
+    { impressions: "1,000",  power: 12, mde: "~35%", risk: "Very high: results unreliable" },
+    { impressions: "2,500",  power: 38, mde: "~22%", risk: "High: only detects large effects" },
+    { impressions: "5,000",  power: 80, mde: "~10%", risk: "Acceptable: industry standard", qualified: true },
+    { impressions: "10,000", power: 95, mde: "~7%",  risk: "Strong: detects smaller effects" },
+    { impressions: "25,000+",power: 99, mde: "~4%",  risk: "Excellent: high sensitivity" },
   ];
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -186,7 +186,7 @@ function AIQualityComparison() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
       <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#6b7280", marginBottom: "4px" }}>
-        Qualification rate — % of experiments clearing ≥5K impressions
+        Qualification rate: % of experiments clearing ≥5K impressions
       </div>
       {bars.map(({ label, qualified, color }) => (
         <div key={label}>
@@ -200,7 +200,7 @@ function AIQualityComparison() {
         </div>
       ))}
       <div style={{ fontSize: "0.75rem", color: "#9ca3af", lineHeight: 1.6, background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: "8px", padding: "10px 14px", marginTop: "4px" }}>
-        <span style={{ color: "#10b981", fontWeight: 700 }}>+16pp qualification rate lift</span> — the evidence base for the Experimentation→Opal commercial attach motion. AI-assisted experiments aren&apos;t just faster; they&apos;re structurally better-constructed, clearing the statistical quality bar at a higher rate.
+        <span style={{ color: "#10b981", fontWeight: 700 }}>+16pp qualification rate lift</span>: the evidence base for the Experimentation→Opal commercial attach motion. AI-assisted experiments aren&apos;t just faster; they&apos;re structurally better-constructed, clearing the statistical quality bar at a higher rate.
       </div>
     </div>
   );
@@ -236,7 +236,7 @@ function RetentionCohortChart() {
       </div>
       <div style={{ marginTop: "20px", padding: "12px 16px", background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: "8px" }}>
         <span style={{ fontSize: "0.72rem", color: "#9ca3af", lineHeight: 1.6 }}>
-          <span style={{ color: "#10b981", fontWeight: 700 }}>+49pp renewal lift</span> from no engagement to highest tier. Controlled for ARR and tenure via logistic regression — experiment engagement remains a statistically significant predictor of renewal after removing confounders (χ²=38.7, p&lt;0.001).
+          <span style={{ color: "#10b981", fontWeight: 700 }}>+49pp renewal lift</span> from no engagement to highest tier. Controlled for ARR and tenure via logistic regression: experiment engagement remains a statistically significant predictor of renewal after removing confounders (χ²=38.7, p&lt;0.001).
         </span>
       </div>
     </div>
@@ -263,7 +263,7 @@ function CausalDAG() {
   return (
     <div style={{ background: "#0d1117", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "20px", overflowX: "auto" }}>
       <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#6b7280", marginBottom: "14px" }}>
-        Causal directed acyclic graph (DAG) — backdoor paths from confounders
+        Causal directed acyclic graph (DAG): backdoor paths from confounders
       </div>
       <svg viewBox="0 0 780 172" width="100%" style={{ display: "block", minWidth: "580px" }}>
         {/* Confounder → chain arrows (dashed orange) */}
@@ -317,7 +317,7 @@ function CausalDAG() {
         <text x="165" y="165" fontSize="8" fill="#6b7280">Confounder (backdoor path)</text>
       </svg>
       <div style={{ marginTop: "14px", fontSize: "0.72rem", color: "#6b7280", lineHeight: 1.6 }}>
-        Confounders create a spurious correlation between experiment engagement and renewal even without a causal effect — ARR tier affects both how many experiments accounts run and their baseline renewal probability. Causal inference methods are required to close these backdoor paths.
+        Confounders create a spurious correlation between experiment engagement and renewal even without a causal effect: ARR tier affects both how many experiments accounts run and their baseline renewal probability. Causal inference methods are required to close these backdoor paths.
       </div>
     </div>
   );
@@ -336,12 +336,12 @@ function CausalApproaches() {
       pill: "Natural experiment",
       pillColor: "rgba(99,102,241,0.15)",
       pillText: "#818cf8",
-      desc: "The 5K impression threshold creates a natural discontinuity. Accounts just above and just below the gate are near-identical in sophistication — any jump in renewal probability at the cutoff is causal, not confounded.",
+      desc: "The 5K impression threshold creates a natural discontinuity. Accounts just above and just below the gate are near-identical in sophistication: any jump in renewal probability at the cutoff is causal, not confounded.",
       detail: [
         { title: "Running variable",     body: "Experiment impression count, centred at 5,000." },
-        { title: "Treatment",            body: "Crossing the threshold — experiment becomes 'qualified' and enters the engagement metric." },
+        { title: "Treatment",            body: "Crossing the threshold: experiment becomes 'qualified' and enters the engagement metric." },
         { title: "Local average effect", body: "Accounts just above 5K renew at approximately +12pp higher rate than accounts just below, within a ±1,500-impression bandwidth." },
-        { title: "Assumption",           body: "No precise manipulation of impression counts around the threshold — verified by checking for bunching in the density of impressions near 5K." },
+        { title: "Assumption",           body: "No precise manipulation of impression counts around the threshold: verified by checking for bunching in the density of impressions near 5K." },
       ],
     },
     {
@@ -354,7 +354,7 @@ function CausalApproaches() {
       desc: "Dev Agent assistance is used as an instrument: it raises qualification rates (relevance) but has no direct path to renewal other than through experiment quality (exclusion restriction). Two-stage least squares isolates the causal effect.",
       detail: [
         { title: "Instrument",            body: "AI assistance flag (Dev Agent used: yes/no)." },
-        { title: "First stage",           body: "AI assistance → qualification rate. F-stat > 10 confirms instrument relevance — not a weak instrument." },
+        { title: "First stage",           body: "AI assistance → qualification rate. F-stat > 10 confirms instrument relevance: not a weak instrument." },
         { title: "Second stage",          body: "Predicted qualification (from first stage) → renewal. Removes the selection bias: accounts that self-select into AI tend to be larger, so OLS overstates the true effect." },
         { title: "IV vs OLS",             body: "IV estimate is ~30% smaller than naive OLS, confirming upward confounding bias when using raw experiment counts." },
       ],
@@ -366,7 +366,7 @@ function CausalApproaches() {
       pill: "Observable confounders",
       pillColor: "rgba(16,185,129,0.15)",
       pillText: "#34d399",
-      desc: "Each high-engagement account (≥5 qualified experiments) is matched to a low-engagement account with the same propensity to engage — conditioned on ARR tier and tenure. Compares renewal rates within matched pairs.",
+      desc: "Each high-engagement account (≥5 qualified experiments) is matched to a low-engagement account with the same propensity to engage: conditioned on ARR tier and tenure. Compares renewal rates within matched pairs.",
       detail: [
         { title: "Propensity model",   body: "Logistic regression: P(high engagement) ~ ARR tier + account tenure." },
         { title: "Matching",           body: "Nearest-neighbour within caliper 0.05, yielding 148 matched pairs from 183 treated accounts." },
@@ -483,7 +483,7 @@ const PYTHON_FILES = [
     se = np.sqrt(2 * pooled * (1 - pooled) / n)
     z_alpha = stats.norm.ppf(1 - alpha / 2)
     z = abs(treatment_rate - baseline_rate) / se
-    # P(reject H0 | H1 true) — both tails
+    # P(reject H0 | H1 true): both tails
     return float(stats.norm.cdf(z - z_alpha) + stats.norm.cdf(-z - z_alpha))
 
 def compute_mde(n, baseline_rate, alpha=0.05, target_power=0.80):
@@ -497,7 +497,7 @@ def compute_mde(n, baseline_rate, alpha=0.05, target_power=0.80):
   },
   {
     name: "bayesian_inference.py",
-    desc: "Beta-Binomial conjugate model — posterior probability, credible intervals, expected loss",
+    desc: "Beta-Binomial conjugate model: posterior probability, credible intervals, expected loss",
     lines: 68,
     snippet: `def analyse(control, treatment, n_samples=100_000):
     """Beta-Binomial posterior via Monte Carlo sampling."""
@@ -626,9 +626,9 @@ export default function Home() {
               Framework
             </h1>
             <p className="text-lg text-[#9ca3af] leading-relaxed mb-10 max-w-xl">
-              Statistical rigour for A/B testing at scale — defining what makes an
-              experiment trustworthy, measuring the impact of AI assistance on quality,
-              and applying causal inference to connect engagement to retention.
+              I spent two years watching Optimizely customers launch experiments that couldn&apos;t possibly tell them anything.
+              The problem wasn&apos;t effort. It was that nobody had defined what a good experiment actually looks like.
+              This is the framework I built to fix that.
             </p>
             <div className="flex flex-wrap gap-3">
               {[
@@ -675,11 +675,11 @@ export default function Home() {
         <ChapterBadge
           num="Ch01"
           title="The Problem"
-          desc="Every A/B testing platform makes it easy to launch an experiment. The hard part is knowing when to trust the result — and building an engagement metric that means something."
+          desc="The PM came to me with a metric request: accounts with at least one experiment running. I pushed back. Running is easy. I needed to define what qualified."
         />
 
         <section id="problem">
-          <SectionLabel>01 — The Problem</SectionLabel>
+          <SectionLabel>01: The Problem</SectionLabel>
           <SectionHeading>Not all experiments are equal.</SectionHeading>
           <div className="grid sm:grid-cols-3 gap-8 mt-8">
             {[
@@ -693,7 +693,7 @@ export default function Home() {
               },
               {
                 title: "Engagement metrics need bedrock",
-                body: "\"EXP Engaged Accounts: 1+ qualified experiment in last 30 days\" is a key retention signal — but it is meaningless if 'qualified' is not statistically grounded.",
+                body: "\"EXP Engaged Accounts: 1+ qualified experiment in last 30 days\" is a key retention signal: but it is meaningless if 'qualified' is not statistically grounded.",
               },
             ].map(({ title, body }) => (
               <div key={title} className="p-6 rounded-xl border card-hover" style={{ background: "#12121a", borderColor: "#2a2a3a" }}>
@@ -710,19 +710,19 @@ export default function Home() {
         <ChapterBadge
           num="Ch02"
           title="The Framework"
-          desc="Statistical foundation for trustworthy results — from the lifecycle gate to dual-paradigm inference and the data model that captures it all."
+          desc="Everything in this framework flows from one number: 5,000. The rest is built to justify that threshold, apply it consistently, and capture every statistical output that follows."
         />
 
         <Divider />
 
         {/* Lifecycle */}
         <section id="lifecycle">
-          <SectionLabel>02 — Experiment Lifecycle</SectionLabel>
+          <SectionLabel>02: Experiment Lifecycle</SectionLabel>
           <SectionHeading>From hypothesis to decision</SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
-            Every experiment passes through the same lifecycle. The qualification gate at 5,000
-            impressions is not a bureaucratic threshold — it&apos;s the point at which statistical
-            machinery becomes reliable. Everything before it is data collection; everything after is inference.
+            Every experiment follows the same path. But most teams treat the running phase as the finish line.
+            The 5,000-impression gate is where data collection ends and inference begins: before it, you&apos;re
+            guessing. The lifecycle only matters if that gate is respected.
           </p>
           <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "22px" }}>
             <ExperimentLifecycleFlow />
@@ -733,15 +733,15 @@ export default function Home() {
 
         {/* The 5K standard */}
         <section id="standard">
-          <SectionLabel>03 — The Qualified Experiment Standard</SectionLabel>
+          <SectionLabel>03: The Qualified Experiment Standard</SectionLabel>
           <SectionHeading>
             A single threshold.{" "}
             <span className="text-amber-500">Rigorous justification.</span>
           </SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-10 max-w-2xl">
-            The qualified-experiment definition anchors every engagement metric in the analytics platform.
-            Getting it right matters — too low and &quot;engaged&quot; is meaningless; too high and legitimate
-            programmes fall out of the metric.
+            I set this threshold once. It now drives CS health scoring, feeds board-level reporting, and
+            sits at the centre of the commercial attach motion for Opal. Getting it wrong had real consequences,
+            so I made sure the number could survive both a stats review and a business review.
           </p>
           <div className="rounded-2xl border p-8 mb-10 flex flex-col sm:flex-row items-start sm:items-center gap-6"
             style={{ background: "rgba(245,158,11,0.06)", borderColor: "rgba(245,158,11,0.25)" }}>
@@ -754,7 +754,7 @@ export default function Home() {
                 At a baseline conversion rate of <strong className="text-white">2–5%</strong>,
                 5,000 impressions per variation provides approximately{" "}
                 <strong className="text-white">80% statistical power</strong> to detect a
-                10% relative lift at α = 0.05 — the standard in industrial experimentation science.
+                10% relative lift at α = 0.05: the standard in industrial experimentation science.
               </p>
               <p>
                 The timestamp at which the threshold is crossed is stored separately, enabling
@@ -764,8 +764,8 @@ export default function Home() {
           </div>
           <div className="grid sm:grid-cols-2 gap-6">
             {[
-              { title: "Engagement signal", body: "\"EXP Engaged Accounts: 1+ qualified experiment in last 30 days\" is the primary engagement KPI for Optimizely's Experimentation product. It uses this exact threshold as its filter — co-designed with the EXP Product Manager." },
-              { title: "Cohort quality",    body: "Accounts that consistently clear the 5,000-impression bar are running tests with sufficient traffic to trust results — a leading indicator of experimentation maturity and platform engagement." },
+              { title: "Engagement signal", body: "\"EXP Engaged Accounts: 1+ qualified experiment in last 30 days\" is the primary engagement KPI for Optimizely's Experimentation product. It uses this exact threshold as its filter: co-designed with the EXP Product Manager." },
+              { title: "Cohort quality",    body: "Accounts that consistently clear the 5,000-impression bar are running tests with sufficient traffic to trust results: a leading indicator of experimentation maturity and platform engagement." },
             ].map(({ title, body }) => (
               <div key={title} className="p-6 rounded-xl border card-hover" style={{ background: "#12121a", borderColor: "#2a2a3a" }}>
                 <div className="flex items-center gap-2 mb-3">
@@ -792,8 +792,8 @@ export default function Home() {
 
         {/* Power analysis */}
         <section id="power">
-          <SectionLabel>04 — Power Analysis</SectionLabel>
-          <SectionHeading>Why <span className="text-amber-500">5,000</span> — the statistical case</SectionHeading>
+          <SectionLabel>04: Power Analysis</SectionLabel>
+          <SectionHeading>Why <span className="text-amber-500">5,000</span>: the statistical case</SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
             The threshold is not arbitrary. At a typical 2–5% baseline conversion rate, 5,000
             impressions per variation achieves 80% statistical power to detect a 10% relative lift —
@@ -808,7 +808,7 @@ export default function Home() {
 
         {/* Statistical framework */}
         <section id="stats">
-          <SectionLabel>05 — Statistical Framework</SectionLabel>
+          <SectionLabel>05: Statistical Framework</SectionLabel>
           <SectionHeading>
             Dual inference:{" "}
             <span className="text-amber-500">Frequentist</span> &amp;{" "}
@@ -865,7 +865,7 @@ export default function Home() {
               </ul>
               <div className="mt-5 p-4 rounded-lg text-xs text-[#9ca3af] leading-relaxed" style={{ background: "#0d1117", border: "1px solid #2a2a3a" }}>
                 <span className="text-amber-500 font-semibold">Why both paradigms?</span>{" "}
-                Frequentist p-values answer &quot;is there an effect?&quot; — Bayesian posteriors answer &quot;how likely is the variation winning?&quot;
+                Frequentist p-values answer &quot;is there an effect?&quot;: Bayesian posteriors answer &quot;how likely is the variation winning?&quot;
                 Storing both lets teams apply whichever framework fits their decision context.
               </div>
             </div>
@@ -876,9 +876,9 @@ export default function Home() {
 
         {/* Data model */}
         <section id="model">
-          <SectionLabel>06 — Experiment Data Model</SectionLabel>
+          <SectionLabel>06: Experiment Data Model</SectionLabel>
           <SectionHeading>
-            <span className="text-amber-500">Experiment Results</span> — core analytics grain
+            <span className="text-amber-500">Experiment Results</span>: core analytics grain
           </SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
             The central fact table stores one row per experiment × variation × metric combination.
@@ -913,28 +913,29 @@ export default function Home() {
         <ChapterBadge
           num="Ch03"
           title="The Analysis"
-          desc="What the data actually says — AI quality evidence, cohort retention, and causal inference to separate signal from confounding."
+          desc="Once the framework existed, I ran the analysis. The AI finding surprised me. The retention signal didn't. The causal work was the hardest part to get right."
         />
 
         <Divider />
 
         {/* AI quality */}
         <section id="ai-quality">
-          <SectionLabel>07 — AI-Assisted Experiment Quality</SectionLabel>
+          <SectionLabel>07: AI-Assisted Experiment Quality</SectionLabel>
           <SectionHeading>
             Does AI assistance change{" "}
             <span className="text-amber-500">experiment quality?</span>
           </SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-10 max-w-2xl">
-            Optimizely&apos;s Dev Agent helps customers set up experiments faster. A natural question
-            follows: does AI-assisted creation affect the statistical quality of those experiments —
-            or just the speed of setup?
+            When Dev Agent launched, the first thing I wanted to know wasn&apos;t velocity.
+            I wanted to know whether AI-assisted experiments were actually better: structurally sounder,
+            with enough traffic to produce a trustworthy result. The answer turned out to be yes,
+            and by a margin large enough to build a commercial argument around.
           </p>
           <div className="grid sm:grid-cols-3 gap-6 mb-10">
             {[
-              { metric: "AI-Assisted Experiment Ratio",  desc: "Share of experiments per account created with Dev Agent assistance — segmented by product line (Web vs Feature Experimentation).",                                                                                pill: "Ratio metric",    pillColor: "rgba(99,102,241,0.15)",  pillText: "#818cf8" },
+              { metric: "AI-Assisted Experiment Ratio",  desc: "Share of experiments per account created with Dev Agent assistance: segmented by product line (Web vs Feature Experimentation).",                                                                                pill: "Ratio metric",    pillColor: "rgba(99,102,241,0.15)",  pillText: "#818cf8" },
               { metric: "Dev Agent Qualification Rate",  desc: "Of AI-assisted experiments, what proportion cleared the ≥5,000 impression threshold? Compared against the baseline qualification rate for standard experiments.",                                            pill: "Quality metric",  pillColor: "rgba(245,158,11,0.15)",  pillText: "#fbbf24" },
-              { metric: "Experiment Velocity",           desc: "Time from experiment creation to first 5K impressions. Measures whether Dev Agent shortens the time-to-qualified — and whether faster setup correlates with or trades off against quality.",                  pill: "Velocity metric", pillColor: "rgba(16,185,129,0.15)",  pillText: "#34d399" },
+              { metric: "Experiment Velocity",           desc: "Time from experiment creation to first 5K impressions. Measures whether Dev Agent shortens the time-to-qualified: and whether faster setup correlates with or trades off against quality.",                  pill: "Velocity metric", pillColor: "rgba(16,185,129,0.15)",  pillText: "#34d399" },
             ].map(({ metric, desc, pill, pillColor, pillText }) => (
               <div key={metric} className="p-6 rounded-xl border flex flex-col gap-3 card-hover" style={{ background: "#12121a", borderColor: "#2a2a3a" }}>
                 <span className="text-xs font-semibold px-2.5 py-1 rounded w-fit" style={{ background: pillColor, color: pillText }}>{pill}</span>
@@ -949,7 +950,7 @@ export default function Home() {
               AI-assisted experiments may show <em className="text-emerald-400">higher qualification rates</em>{" "}
               because Dev Agent guides users toward better-structured test setups with appropriate traffic
               allocation. Alternatively, if AI lowers the barrier to launching experiments, it may increase
-              the volume of underpowered experiments — a testable prediction that the data adjudicates.
+              the volume of underpowered experiments: a testable prediction that the data adjudicates.
             </p>
           </div>
         </section>
@@ -958,12 +959,13 @@ export default function Home() {
 
         {/* Quality finding */}
         <section id="finding">
-          <SectionLabel>08 — Quality Finding</SectionLabel>
+          <SectionLabel>08: Quality Finding</SectionLabel>
           <SectionHeading>Dev Agent improves quality, not just velocity</SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
-            The data resolves the hypothesis: AI-assisted experiments show a higher qualification rate
-            than standard experiments — not just faster creation. This became the commercial proof point
-            for the Experimentation→Opal attach motion.
+            58% of standard experiments cleared the quality bar. 74% of Dev Agent-assisted experiments did.
+            That&apos;s not a velocity story: it&apos;s a quality story. I used this to anchor the commercial
+            argument that selling Opal into Experimentation accounts wasn&apos;t just an upsell — it made
+            their core product work better.
           </p>
           <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "22px" }}>
             <AIQualityComparison />
@@ -974,37 +976,41 @@ export default function Home() {
 
         {/* Cohort retention */}
         <section id="cohort">
-          <SectionLabel>09 — Cohort Retention Analysis</SectionLabel>
+          <SectionLabel>09: Cohort Retention Analysis</SectionLabel>
           <SectionHeading>
             Qualified experiments &amp;{" "}
             <span className="text-amber-500">account retention</span>
           </SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-10 max-w-2xl">
-            Do accounts that run more qualified experiments retain better? The hypothesis is that
-            experimentation maturity — proxied by qualified experiment count — is a leading indicator
-            of platform stickiness and contract renewal.
+            I built this analysis to answer a question the CS team kept asking: why do some accounts
+            run experiments for years while others go quiet after the first quarter? I suspected the
+            experiments themselves were the signal. The data confirmed it, by a lot.
           </p>
           <div className="grid sm:grid-cols-2 gap-8 mb-10">
-            {/* Analysis approach */}
+            {/* Analysis pipeline — visual flow */}
             <div>
-              <h3 className="font-semibold text-white mb-4 text-sm uppercase tracking-wider">Analysis approach</h3>
-              <ol className="space-y-4">
+              <h3 className="font-semibold text-white mb-5 text-sm uppercase tracking-wider">How I ran it</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
                 {[
-                  { step: "1", title: "Anchor on account dimension",   desc: "Pull ARR, contract dates, and renewal outcome per account from the account dimension table." },
-                  { step: "2", title: "Join experiment counts",         desc: "Count qualified experiments (≥5,000 impressions) per account in the 90 days before renewal — joined via the project-to-account mapping." },
-                  { step: "3", title: "Cohort by experiment tier",      desc: "Segment accounts: 0 qualified experiments, 1–4, 5–19, 20+. Compare renewal rate and ARR expansion across cohorts." },
-                  { step: "4", title: "Control for ARR & tenure",       desc: "Logistic regression to isolate experiment engagement from confounders like contract size and account age." },
-                ].map(({ step, title, desc }) => (
-                  <li key={step} className="flex gap-4">
-                    <span className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold"
-                      style={{ background: "rgba(245,158,11,0.15)", color: "#f59e0b" }}>{step}</span>
-                    <div>
-                      <p className="text-white text-sm font-medium mb-0.5">{title}</p>
-                      <p className="text-xs text-[#9ca3af] leading-relaxed">{desc}</p>
+                  { step: "01", title: "Start with accounts",  desc: "ARR tier, contract dates, renewal outcome. This is the unit of analysis: not experiments, not users.", color: "#a5b4fc" },
+                  { step: "02", title: "Count qualified runs",  desc: "How many experiments cleared ≥5K impressions in the 90 days before their renewal date? Joined through the project-to-account mapping.", color: "#fbbf24" },
+                  { step: "03", title: "Bucket by tier",        desc: "Four cohorts: zero runs, 1–4, 5–19, 20+. The renewal rate gap between the first and last cohort is 49 percentage points.", color: "#f59e0b" },
+                  { step: "04", title: "Remove confounders",    desc: "Logistic regression. ARR tier and account tenure go in as controls. Experiment engagement remains significant after both are removed.", color: "#34d399" },
+                ].map(({ step, title, desc, color }, i, arr) => (
+                  <div key={step} style={{ display: "flex", gap: "0" }}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "36px", flexShrink: 0 }}>
+                      <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: `${color}18`, border: `1px solid ${color}44`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <span style={{ fontSize: "0.58rem", fontWeight: 800, color }}>{step}</span>
+                      </div>
+                      {i < arr.length - 1 && <div style={{ width: "1px", flex: 1, background: "rgba(255,255,255,0.06)", margin: "4px 0" }} />}
                     </div>
-                  </li>
+                    <div style={{ paddingLeft: "12px", paddingBottom: i < arr.length - 1 ? "20px" : "0" }}>
+                      <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "#f1f5f9", marginBottom: "3px" }}>{title}</p>
+                      <p style={{ fontSize: "0.75rem", color: "#9ca3af", lineHeight: 1.6, margin: 0 }}>{desc}</p>
+                    </div>
+                  </div>
                 ))}
-              </ol>
+              </div>
             </div>
             {/* Data relationships */}
             <div>
@@ -1036,16 +1042,16 @@ export default function Home() {
 
         {/* Causal inference */}
         <section id="causal">
-          <SectionLabel>10 — Causal Inference</SectionLabel>
+          <SectionLabel>10: Causal Inference</SectionLabel>
           <SectionHeading>
             Correlation or{" "}
             <span className="text-amber-500">causation?</span>
           </SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-10 max-w-2xl">
-            The cohort data shows a clear pattern — but observing that high-engagement accounts
-            renew at higher rates is not the same as proving that experiment engagement <em>causes</em>{" "}
-            renewal. Large, sophisticated accounts both experiment more and renew more for independent
-            reasons. Causal identification requires closing those backdoor paths.
+            Here&apos;s the uncomfortable truth about the retention finding: it could all be selection bias.
+            Large, well-resourced accounts experiment more and renew more regardless — correlation
+            isn&apos;t causation. Before I could put this number in front of leadership, I had to rule that out.
+            Three identification strategies later, the signal held up.
           </p>
 
           {/* Causal DAG */}
@@ -1060,7 +1066,7 @@ export default function Home() {
               <p className="text-sm text-[#9ca3af] leading-relaxed mb-5">
                 Directional dependence testing establishes the causal ordering: does experiment
                 engagement predict future renewal better than renewal predicts future experimentation?
-                Temporal sequencing — engagement measured in L90D preceding the renewal date —
+                Temporal sequencing: engagement measured in L90D preceding the renewal date —
                 supports the forward causal direction.
               </p>
               <DirectionalChain />
@@ -1069,10 +1075,10 @@ export default function Home() {
               <h3 className="font-semibold text-white mb-5 text-sm uppercase tracking-wider">Multivariate Confounders</h3>
               <div className="space-y-3">
                 {[
-                  { name: "ARR Tier",            effect: "Large accounts run more experiments AND have higher baseline renewal — creates spurious correlation",       severity: "High",   color: "#ef4444" },
-                  { name: "Account Tenure",       effect: "Long-tenured accounts are more experimentally mature AND more sticky — correlated but not causal",          severity: "Medium", color: "#f59e0b" },
-                  { name: "Product Adoption",     effect: "Accounts using more Optimizely products have more surfaces to experiment on — partially observable",          severity: "Medium", color: "#f59e0b" },
-                  { name: "Industry Vertical",    effect: "Some verticals (FinTech, e-commerce) are structurally more experimentation-mature — often unobservable",      severity: "Low",    color: "#6b7280" },
+                  { name: "ARR Tier",            effect: "Large accounts run more experiments AND have higher baseline renewal: creates spurious correlation",       severity: "High",   color: "#ef4444" },
+                  { name: "Account Tenure",       effect: "Long-tenured accounts are more experimentally mature AND more sticky: correlated but not causal",          severity: "Medium", color: "#f59e0b" },
+                  { name: "Product Adoption",     effect: "Accounts using more Optimizely products have more surfaces to experiment on: partially observable",          severity: "Medium", color: "#f59e0b" },
+                  { name: "Industry Vertical",    effect: "Some verticals (FinTech, e-commerce) are structurally more experimentation-mature: often unobservable",      severity: "Low",    color: "#6b7280" },
                 ].map(({ name, effect, severity, color }) => (
                   <div key={name} className="p-4 rounded-xl border" style={{ background: "#12121a", borderColor: "#2a2a3a" }}>
                     <div className="flex items-center justify-between mb-1.5">
@@ -1092,14 +1098,13 @@ export default function Home() {
 
           {/* Synthesis */}
           <div style={{ marginTop: "24px", background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.18)", borderRadius: "12px", padding: "20px 24px" }}>
-            <div style={{ fontSize: "0.6rem", fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#10b981", marginBottom: "8px" }}>Synthesis</div>
+            <div style={{ fontSize: "0.6rem", fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#10b981", marginBottom: "8px" }}>My conclusion</div>
             <p style={{ fontSize: "0.88rem", color: "#9ca3af", lineHeight: 1.75, margin: 0 }}>
-              All three approaches converge: experiment engagement has a positive causal effect on renewal,
-              even after removing confounding from ARR tier, tenure, and observable selection effects.
-              The RDD estimate (+12pp LATE at the 5K threshold) is the most credible because it exploits
-              a near-random assignment — accounts don&apos;t precisely control their impression counts.
-              This validates the engagement metric&apos;s use in CS health scoring and the commercial
-              attach motion from Experimentation to Opal.
+              Three methods, one answer. The RDD is the cleanest: nobody engineers their impression count
+              to land at exactly 4,999 or 5,001. That near-randomness around the threshold gives us a
+              genuinely causal estimate — +12pp renewal lift from crossing the qualification gate.
+              IV and PSM converged on the same direction. I took this to leadership. The engagement metric
+              went into CS health scoring and the Experimentation→Opal attach motion with that backing.
             </p>
           </div>
         </section>
@@ -1108,10 +1113,10 @@ export default function Home() {
 
         {/* Python analysis code */}
         <section id="code">
-          <SectionLabel>11 — Python Analysis Code</SectionLabel>
+          <SectionLabel>11: Python Analysis Code</SectionLabel>
           <SectionHeading>Working analysis scripts on GitHub</SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
-            All analysis runs on synthetic data — same schema shapes as the Optimizely platform output,
+            All analysis runs on synthetic data: same schema shapes as the Optimizely platform output,
             but generated from scratch. The scripts are self-contained, runnable with standard Python
             scientific libraries.
           </p>
@@ -1136,7 +1141,7 @@ export default function Home() {
 
         {/* Tech stack */}
         <section id="stack">
-          <SectionLabel>12 — Tech Stack</SectionLabel>
+          <SectionLabel>12: Tech Stack</SectionLabel>
           <SectionHeading>Built with</SectionHeading>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-6">
             {[
