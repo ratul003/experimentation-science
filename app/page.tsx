@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import SectionNav from "./SectionNav";
-import PortfolioLinks from "./PortfolioLinks";
 
 // ── Tech stack tool icons ─────────────────────────────────────────────────────
 
@@ -3368,23 +3367,28 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t" style={{ borderColor: "#2a2a3a" }}>
-        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-start justify-between gap-6">
-          <div style={{ display: "flex", flexDirection: "column" as const, gap: "4px" }}>
-            <PortfolioLinks />
-            <div style={{ display: "flex", flexDirection: "column" as const, gap: "2px" }}>
-              <span className="text-sm font-semibold text-white">Wahid Tawsif Ratul</span>
-              <span className="text-xs text-[#6b7280]">Data Scientist · Product Manager</span>
-            </div>
+      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.07)', padding: '40px 32px 56px' }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
+          <div>
+            <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 5 }}>Wahid Tawsif Ratul</div>
+            <div style={{ fontSize: '0.8rem', color: '#64748b' }}>© 2026 · Data Scientist · Product Manager</div>
           </div>
-          <a href="https://github.com/ratul003/experimentation-science" target="_blank" rel="noopener noreferrer"
-            style={{ borderColor: "#2a2a3a" }}
-            className="flex items-center gap-2 border rounded-lg px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:border-amber-700 transition-colors flex-shrink-0">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-            </svg>
-            View on GitHub
-          </a>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            {[
+              { label: 'LinkedIn', href: 'https://linkedin.com/in/wahidratul112296', path: 'M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.64h.05c.53-1 1.83-2.05 3.77-2.05C20.5 8.59 22 11 22 14.4V21h-4v-5.86c0-1.4-.03-3.2-1.95-3.2-1.95 0-2.25 1.52-2.25 3.1V21H9z' },
+              { label: 'GitHub', href: 'https://github.com/ratul003', path: 'M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-.88-.01-1.73-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.55-1.14-4.55-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.27 2.75 1.05a9.4 9.4 0 0 1 5 0c1.91-1.32 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.48-.01 2.82 0 .27.18.6.69.49A10.26 10.26 0 0 0 22 12.25C22 6.58 17.52 2 12 2z' },
+              { label: 'Medium', href: 'https://medium.com/@wahidtratul', path: 'M2.5 5.5l1.7 2v9.7l-2 2.3h5.4l-2-2.3V8.4l4.9 11.1h.1l4.3-10.5v8.2l-1.3 1.3v.2h6.4v-.2l-1.3-1.3V6.9l1.3-1.3v-.1h-4.5L13 13.9 9.3 5.5z' },
+              { label: 'Email', href: 'mailto:wahidtratul@gmail.com', path: '' },
+            ].map((s) => (
+              <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} style={{ color: '#64748b', display: 'inline-flex' }}>
+                {s.label === 'Email' ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={s.path} /></svg>
+                )}
+              </a>
+            ))}
+          </div>
         </div>
       </footer>
 
