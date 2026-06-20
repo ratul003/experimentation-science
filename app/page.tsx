@@ -20,7 +20,7 @@ const EXP_TOOLS = [
     ),
   },
   {
-    name: "Optimizely", color: "#f59e0b", cat: "Platform",
+    name: "Experiment Platform", color: "#f59e0b", cat: "Platform",
     svg: (
       <svg viewBox="0 0 24 24" fill="none" width="28" height="28">
         <circle cx="12" cy="12" r="9"   stroke="#f59e0b" strokeWidth="2"/>
@@ -338,7 +338,7 @@ const EXP_TYPES = [
     tagline: "One variable, two variants",
     color: "#818cf8",
     when: "You have a single, clear hypothesis. One element changes : everything else stays constant. Works for most product decisions.",
-    optimizely: "Web Experimentation or Feature Experimentation depending on surface",
+    platformProduct: "Web Experimentation or Feature Experimentation depending on surface",
     traffic: "Split evenly: 50/50",
     sampleImpact: "Standard : full power calculation applies",
     watchout: "Running multiple A/B tests on the same page simultaneously can contaminate results if users are exposed to both.",
@@ -350,7 +350,7 @@ const EXP_TYPES = [
     tagline: "Multiple variables, all combinations",
     color: "#f59e0b",
     when: "You want to test multiple elements simultaneously and detect interaction effects : where two changes together outperform either alone.",
-    optimizely: "Web Experimentation (Optimizely X supports full factorial and fractional factorial MVT)",
+    platformProduct: "Web Experimentation (the platform supports full factorial and fractional factorial MVT)",
     traffic: "Split across all combinations: 4 variants in 2x2 = 25% each",
     sampleImpact: "Larger: n multiplies by number of cells. A 2x2 requires ~4x the traffic of a simple A/B test for equal power.",
     watchout: "Fractional factorial designs test a subset of combinations to reduce traffic requirements : but can't detect certain interaction effects.",
@@ -362,7 +362,7 @@ const EXP_TYPES = [
     tagline: "Server-side controlled rollout",
     color: "#34d399",
     when: "You're shipping a new feature and want to control rollout percentage, test it on a segment, or do a canary release before full launch.",
-    optimizely: "Feature Experimentation : SDK-based, works across any platform (web, mobile, server)",
+    platformProduct: "Feature Experimentation : SDK-based, works across any platform (web, mobile, server)",
     traffic: "Configurable: 0–100% rollout with targeting rules (user attributes, segments, environments)",
     sampleImpact: "Same power principles apply : but you control exposure exactly via SDK, so allocation is more precise than client-side cookie-based",
     watchout: "Feature flags persist across sessions. Users assigned to a variant stay in it. Don't flip flags mid-experiment without resetting the analysis.",
@@ -374,7 +374,7 @@ const EXP_TYPES = [
     tagline: "Long-run counterfactual control",
     color: "#a5b4fc",
     when: "You want to measure the cumulative value of an entire product area or feature portfolio over time : not a single feature in isolation.",
-    optimizely: "Feature Experimentation with a persistent exclusion group : Optimizely supports holdout layers for exactly this use case",
+    platformProduct: "Feature Experimentation with a persistent exclusion group : the platform supports holdout layers for exactly this use case",
     traffic: "Typically 5–10% held back from ALL feature changes for the entire measurement period",
     sampleImpact: "Designed for long-term (90–365 day) measurement. Requires explicit statistical adjustment for multiple comparisons over time.",
     watchout: "Holdout users receive no improvements for months. Balance measurement value against user experience degradation, especially for UX-critical paths.",
@@ -409,7 +409,7 @@ function ExperimentTypeSelector() {
         <div style={{ padding: "20px 24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
           {[
             { label: "When to use",           value: t.when,          color: t.color },
-            { label: "Optimizely product",     value: t.optimizely,    color: "#9ca3af" },
+            { label: "Platform product",       value: t.platformProduct, color: "#9ca3af" },
             { label: "Traffic allocation",     value: t.traffic,       color: "#9ca3af" },
             { label: "Sample size impact",     value: t.sampleImpact,  color: "#9ca3af" },
           ].map(({ label, value, color }) => (
@@ -563,9 +563,9 @@ function ExperimentLifecycleFlow() {
   );
 }
 
-// ── Optimizely product decision guide ─────────────────────────────────────────
+// ── Platform product decision guide ─────────────────────────────────────────
 
-function OptimizelyProductGuide() {
+function PlatformProductGuide() {
   const products = [
     {
       name: "Web Experimentation",
@@ -874,7 +874,7 @@ function StatsFramework() {
       )}
       <div style={{ marginTop: "12px", background: "rgba(245,158,11,0.04)", border: "1px solid rgba(245,158,11,0.12)", borderRadius: "10px", padding: "12px 16px" }}>
         <p style={{ fontSize: "0.8rem", color: "#9ca3af", margin: 0, lineHeight: 1.6 }}>
-          At Optimizely, the platform stores <strong style={{ color: "#fbbf24" }}>both paradigms side by side</strong> per experiment × variation × metric.
+          At the company, the platform stores <strong style={{ color: "#fbbf24" }}>both paradigms side by side</strong> per experiment × variation × metric.
           PMs use Bayesian posteriors for ship/stop decisions; the data team uses frequentist p-values for audit trails and board reporting. Different questions, same underlying data.
         </p>
       </div>
@@ -903,15 +903,15 @@ function AIAccelerationFlow() {
     {
       phase: "Monitor",
       without: ["Check results daily in OA manually", "Spot data quality issues late", "Miss interaction effects", "React to early noise ('peeking')"],
-      with:    ["Opal agent alerts when power is reached", "Automated data quality checks flag anomalies early", "Interaction effects surfaced in MVT analysis", "Sequential validity enforced : no early peeking penalty"],
-      aiTool: "Opal Analytics",
+      with:    ["AI agent alerts when power is reached", "Automated data quality checks flag anomalies early", "Interaction effects surfaced in MVT analysis", "Sequential validity enforced : no early peeking penalty"],
+      aiTool: "AI Agent Analytics",
       lift: "Earlier catch rate on bad experiments",
     },
     {
       phase: "Decide",
       without: ["Read statistical output and interpret manually", "Write results summary for stakeholders", "Decide next test from gut feel", "Manually archive experiment learnings"],
-      with:    ["Opal explains results in plain language with confidence framing", "Auto-generates stakeholder summary pushed to Coda", "Recommends next hypothesis based on experiment history", "Learning is stored, searchable, and feeds future power calculations"],
-      aiTool: "Opal Analytics",
+      with:    ["The AI agent explains results in plain language with confidence framing", "Auto-generates stakeholder summary pushed to Coda", "Recommends next hypothesis based on experiment history", "Learning is stored, searchable, and feeds future power calculations"],
+      aiTool: "AI Agent Analytics",
       lift: "2 days → same day decision",
     },
   ];
@@ -922,7 +922,7 @@ function AIAccelerationFlow() {
       <div style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr", gap: "12px", paddingBottom: "8px", borderBottom: "1px solid #2a2a3a" }}>
         <div />
         <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#ef4444", textAlign: "center" as const }}>Without AI</div>
-        <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#10b981", textAlign: "center" as const }}>With AI (Dev Agent + Opal)</div>
+        <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#10b981", textAlign: "center" as const }}>With AI (Dev Agent + AI Agent)</div>
       </div>
 
       {phases.map(({ phase, without, with: withAI, aiTool, lift }) => (
@@ -985,7 +985,7 @@ function AIQualityComparison() {
         </div>
       ))}
       <div style={{ fontSize: "0.75rem", color: "#9ca3af", lineHeight: 1.6, background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: "8px", padding: "10px 14px", marginTop: "4px" }}>
-        <strong style={{ color: "#10b981" }}>+16% qualification rate lift</strong> : 58% of standard experiments cleared the quality bar; 74% of Dev Agent-assisted ones did. That&apos;s not a velocity story: it&apos;s a quality story. I used this to anchor the commercial argument that selling Opal into Experimentation accounts made their core product work better.
+        <strong style={{ color: "#10b981" }}>+16% qualification rate lift</strong> : 58% of standard experiments cleared the quality bar; 74% of Dev Agent-assisted ones did. That&apos;s not a velocity story: it&apos;s a quality story. I used this to anchor the commercial argument that selling the AI agent into Experimentation accounts made their core product work better.
       </div>
     </div>
   );
@@ -1592,10 +1592,10 @@ const CAPABILITIES = [
     ],
     build: `# Scheduled job : runs every 30 minutes
 async def monitor_experiments(workspace_id: str):
-    experiments = optimizely.get_active_experiments(workspace_id)
+    experiments = platform.get_active_experiments(workspace_id)
 
     for exp in experiments:
-        results = optimizely.get_results(exp.id)
+        results = platform.get_results(exp.id)
         issues = []
 
         # Statistical health checks
@@ -1693,7 +1693,7 @@ def draft_hypothesis(goal: str, workspace_id: str) -> HypothesisDoc:
       { name: "Verbosity tuning", desc: "A 3-sentence recommendation for busy product leads. A full methodology breakdown for analytically-oriented senior PMs. The verbosity field in the user profile controls which template the LLM chooses." },
       { name: "Decision history learning", desc: "Dev Agent logs which suggestions each PM accepted, modified, or rejected. After 10–15 decisions, it starts pre-adjusting : proposing smaller n if the PM consistently tightens time constraints, for example." },
     ],
-    build: `# User profile store : keyed by PM user ID (from Optimizely SSO)
+    build: `# User profile store : keyed by PM user ID (from platform SSO)
 def get_pm_profile(user_id: str) -> PMProfile:
     return db.get(f"pm:{user_id}", default=PMProfile(
         risk_tolerance="moderate",   # conservative | moderate | aggressive
@@ -1746,7 +1746,7 @@ response = claude.messages.create(
     build: `# Learning loop : triggered when an experiment concludes (webhook or poll)
 def evaluate_and_learn(experiment_id: str):
     prediction = prediction_store.get(experiment_id)  # saved at hypothesis stage
-    actual = optimizely.get_final_results(experiment_id)
+    actual = platform.get_final_results(experiment_id)
 
     accuracy = EvaluationResult(
         sample_size_error=abs(prediction.n - actual.n) / max(actual.n, 1),
@@ -1891,8 +1891,8 @@ function DevAgentCapabilities() {
 const BUILD_STEPS = [
   {
     step: "01", title: "Connect the data layer", color: "#818cf8", effort: "~1 day",
-    desc: "Wire the agent to your experiment platform's API. For Optimizely: REST API for experiment config, Results API for live data, the Tracking Plan export for event schema. For any other platform: look for the same three surfaces : experiment config endpoint, live results endpoint, event schema dictionary. These three are all you need to ground every LLM call in reality.",
-    inputs: ["Optimizely REST API credentials (or equivalent platform API)", "Results API access token for live experiment data", "Tracking Plan export (event names, required properties, identity schema)"],
+    desc: "Wire the agent to your experiment platform's API. For the reference platform: REST API for experiment config, Results API for live data, the Tracking Plan export for event schema. For any other platform: look for the same three surfaces : experiment config endpoint, live results endpoint, event schema dictionary. These three are all you need to ground every LLM call in reality.",
+    inputs: ["Platform REST API credentials (or equivalent platform API)", "Results API access token for live experiment data", "Tracking Plan export (event names, required properties, identity schema)"],
     output: "Structured workspace context object : the grounding data for every downstream LLM call. Cached and refreshed every hour.",
   },
   {
@@ -1910,7 +1910,7 @@ const BUILD_STEPS = [
   {
     step: "04", title: "Add the personalisation layer", color: "#a5b4fc", effort: "~1 day",
     desc: "A lightweight user profile store (Redis or Postgres) keyed by PM user ID from your SSO. Fields: risk_tolerance, stat_preference, verbosity, mde_target, decision_history. The profile is injected into the LLM system prompt on every call as a context block : no separate code path, no ML model. It is purely prompt engineering with a user-specific context block appended to the base system prompt.",
-    inputs: ["PM user ID from Optimizely SSO (or your auth provider)", "Initial profile from a 3-question onboarding form (takes 60 seconds per PM)", "Ongoing: PM decisions logged automatically : accept, modify, or reject each suggestion"],
+    inputs: ["PM user ID from platform SSO (or your auth provider)", "Initial profile from a 3-question onboarding form (takes 60 seconds per PM)", "Ongoing: PM decisions logged automatically : accept, modify, or reject each suggestion"],
     output: "Personalised framing on every suggestion. Same recommendation, different presentation : matching each PM's communication style, risk appetite, and statistical literacy without maintaining separate agent versions.",
   },
   {
@@ -2008,9 +2008,9 @@ function DevAgentBuildGuide() {
 const INDUSTRY_MAP = [
   {
     sector: "B2B SaaS",
-    subsector: "Optimizely: reference implementation",
+    subsector: "Experimentation platform: reference implementation",
     color: "#f59e0b",
-    platform: "Optimizely REST + Results API",
+    platform: "Platform REST + Results API",
     experimentType: "Feature flags · Web Experimentation · Holdout layers",
     primaryMetric: "Qualified experiment rate (≥5K impressions) · Renewal rate",
     monitorSignal: "Impression velocity · SRM · Tracking event fire rate · Cross-experiment contamination",
@@ -2158,7 +2158,7 @@ function IndustryAdapter() {
 
       <div style={{ marginTop: "12px", background: "rgba(245,158,11,0.04)", border: "1px solid rgba(245,158,11,0.12)", borderRadius: "10px", padding: "12px 16px" }}>
         <p style={{ fontSize: "0.8rem", color: "#9ca3af", margin: 0, lineHeight: 1.7 }}>
-          A working Optimizely implementation takes ~9 engineering days. Each additional industry takes ~1 more : swap the connector, add compliance constraints, keep everything else.
+          A working reference implementation takes ~9 engineering days. Each additional industry takes ~1 more : swap the connector, add compliance constraints, keep everything else.
           The monitoring loop, tool suite, personalisation store, and learning loop are{" "}
           <strong style={{ color: "#fbbf24" }}>identical across all six industries</strong>.
         </p>
@@ -2322,7 +2322,7 @@ function CrossFunctionalMap() {
         "Monitors account experiment exposure",
         "Flags qualitative signal from accounts",
         "Uses engagement metric in health scoring",
-        "Drives Opal attach motion via quality story",
+        "Drives AI Agent attach motion via quality story",
         "Translates qualification rate into renewal risk",
       ],
     },
@@ -2371,13 +2371,13 @@ function DevAgentERD() {
     metriclib:  { layer: "Input",        color: "#818cf8", label: "Metric Library",            body: "The canonical event dictionary maintained by Product Analytics. Dev Agent validates metric choices against approved events and auto-suggests guardrail metrics from the library." },
     tracking:   { layer: "Input",        color: "#818cf8", label: "Tracking Plan",             body: "The Segment tracking contract : required properties, event naming, identity linkage. Dev Agent checks that any new event meets the schema before generating tracking code." },
     history:    { layer: "Input",        color: "#818cf8", label: "Experiment History",        body: "Historical experiment data: baseline conversion rates by segment, typical MDEs, prior test results. Powers the sample-size calculator with real account-specific data instead of generic assumptions." },
-    llm:        { layer: "Intelligence", color: "#6366f1", label: "LLM Core (Claude Sonnet 4.6)", body: "The intelligence layer. Receives enriched context, generates hypotheses, dispatches tools in sequence, and synthesises outputs into coherent recommendations. Uses structured output to ensure results fit Optimizely's platform APIs." },
+    llm:        { layer: "Intelligence", color: "#6366f1", label: "LLM Core (Claude Sonnet 4.6)", body: "The intelligence layer. Receives enriched context, generates hypotheses, dispatches tools in sequence, and synthesises outputs into coherent recommendations. Uses structured output to ensure results fit the platform's APIs." },
     dispatcher: { layer: "Intelligence", color: "#fbbf24", label: "Tool Dispatcher",           body: "Routes the LLM's intent to the correct tool chain. Decides which combination of tools to invoke based on the user's request, available context, and previous tool outputs." },
     hypothesis: { layer: "Tool Suite",   color: "#34d399", label: "Hypothesis Drafter",        body: "Generates a full hypothesis statement: intervention, expected outcome, metric, MDE estimate, and reasoning. Validated against the Metric Library before output." },
     power:      { layer: "Tool Suite",   color: "#34d399", label: "Sample Size Calc",          body: "Runs power analysis using account-specific baseline rates from Experiment History. Outputs required n-per-variation, projected run duration, and flags if the experiment won't qualify at the 5K threshold." },
     codegen:    { layer: "Tool Suite",   color: "#34d399", label: "Code Generator",            body: "Writes variant implementation code : JavaScript for Web Experimentation or SDK calls for Feature Experimentation : plus the tracking event calls for the primary metric, validated against the Tracking Plan schema." },
     explain:    { layer: "Tool Suite",   color: "#34d399", label: "Results Explainer",         body: "Takes statistical output (p-value, posterior probability, expected loss) and produces a plain-language decision recommendation for the PM: ship, iterate, or stop : with the causal reasoning attached." },
-    platform:   { layer: "Output",       color: "#f59e0b", label: "Optimizely Platform API",   body: "The output destination. Dev Agent writes back experiment configuration, feature flag settings, traffic allocation rules, and metric registration : all via the Optimizely REST API, no manual UI work required." },
+    platform:   { layer: "Output",       color: "#f59e0b", label: "Platform API",   body: "The output destination. Dev Agent writes back experiment configuration, feature flag settings, traffic allocation rules, and metric registration : all via the platform API, no manual UI work required." },
   };
 
   const active = selected ? DETAILS[selected] : null;
@@ -2551,7 +2551,7 @@ function DevAgentERD() {
                   fill={on ? `${OC}15` : `${OC}08`} stroke={on ? OC : `${OC}28`} strokeWidth={on ? 1.6 : 1} />
                 {on && <rect x={PT_X} y={PT_Y} width={PT_W} height={4} rx={2} fill={OC} fillOpacity="0.45" />}
                 <text x={CX} y={PT_Y + 14} textAnchor="middle" fontSize="8" fontWeight="700" fill={OC} letterSpacing="2">OUTPUT</text>
-                <text x={CX} y={PT_Y + 31} textAnchor="middle" fontSize="13" fontWeight="700" fill={on ? "#fde68a" : "#fbbf24"}>Optimizely Platform API</text>
+                <text x={CX} y={PT_Y + 31} textAnchor="middle" fontSize="13" fontWeight="700" fill={on ? "#fde68a" : "#fbbf24"}>Platform API</text>
               </g>
             );
           })()}
@@ -2893,7 +2893,7 @@ export default function Home() {
         <div className="grid sm:grid-cols-2 gap-12 items-start">
           <div>
             <p className="text-xs font-semibold tracking-[0.15em] uppercase text-amber-500 mb-5">
-              Case Study &nbsp;·&nbsp; Optimizely
+              Case Study &nbsp;·&nbsp; Experimentation Platform
             </p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
               Running{" "}
@@ -2902,7 +2902,7 @@ export default function Home() {
             <p className="text-lg text-[#9ca3af] leading-relaxed mb-10 max-w-xl">
               A PM can launch an A/B test in minutes. The hard part is designing it so the result
               is trustworthy, picking the right variables to test, reading the statistics correctly,
-              and knowing whether correlation is actually causation. This is that framework : built at Optimizely,
+              and knowing whether correlation is actually causation. This is that framework : built at a B2B experimentation and digital-experience platform,
               applicable anywhere.
             </p>
             <div className="flex flex-wrap gap-3">
@@ -2952,7 +2952,7 @@ export default function Home() {
           <SectionHeading>Think like a PM: feature, pricing, or packaging?</SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
             The best experiment ideas come from a specific business question, not from &ldquo;let&apos;s
-            test the button colour.&rdquo; At Optimizely, we ran experiments across three categories.
+            test the button colour.&rdquo; At the platform, we ran experiments across three categories.
             Each one has a different statistical shape, a different metric, and a different minimum
             detectable effect worth caring about.
           </p>
@@ -2960,7 +2960,7 @@ export default function Home() {
           <HypothesisScorer />
 
           <div className="mt-14">
-            <h3 className="font-semibold text-white mb-2 text-sm uppercase tracking-wider">This isn&apos;t just an Optimizely problem</h3>
+            <h3 className="font-semibold text-white mb-2 text-sm uppercase tracking-wider">This isn&apos;t just a platform problem</h3>
             <p className="text-[#9ca3af] text-sm leading-relaxed mb-6 max-w-2xl">
               Every industry that makes product decisions has an experimentation problem. The same statistical framework
               applies whether you&apos;re testing a checkout flow at an e-commerce company or an appointment booking UI
@@ -3020,14 +3020,14 @@ export default function Home() {
         <Divider />
 
         <section id="run">
-          <SectionLabel>04: Setting Up in Optimizely</SectionLabel>
+          <SectionLabel>04: Setting Up on the Platform</SectionLabel>
           <SectionHeading>Web Experimentation vs Feature Experimentation</SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
-            Optimizely has two distinct products for running experiments, and choosing the wrong one
+            The platform has two distinct products for running experiments, and choosing the wrong one
             creates real problems: client-side tests can&apos;t handle server-side features, and SDK-based
             tests can&apos;t target by URL pattern. Here&apos;s the decision rule I used.
           </p>
-          <OptimizelyProductGuide />
+          <PlatformProductGuide />
 
           <div className="mt-12">
             <h3 className="font-semibold text-white mb-5 text-sm uppercase tracking-wider">The lifecycle from design to decision</h3>
@@ -3116,7 +3116,7 @@ export default function Home() {
             Two frameworks, one experiment : <span className="text-amber-500">different questions answered</span>
           </SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
-            At Optimizely, the data model stores both statistical paradigms per experiment × variation × metric.
+            At the platform, the data model stores both statistical paradigms per experiment × variation × metric.
             The choice isn&apos;t either/or : it&apos;s knowing which question each one answers.
             Toggle between them to see what the same experiment result looks like through each lens.
           </p>
@@ -3138,7 +3138,7 @@ export default function Home() {
         <section id="ai-accel">
           <SectionLabel>07: How AI Accelerates Every Phase</SectionLabel>
           <SectionHeading>
-            Dev Agent + Opal: before and after
+            Dev Agent + AI Agent: before and after
           </SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
             When Dev Agent launched, I wanted to know whether it made experiments better : not just
@@ -3151,7 +3151,7 @@ export default function Home() {
             <h3 className="font-semibold text-white mb-5 text-sm uppercase tracking-wider">The quality finding</h3>
             <p className="text-[#9ca3af] text-sm leading-relaxed mb-6 max-w-2xl">
               58% of standard experiments cleared the quality bar. 74% of Dev Agent-assisted ones did. That&apos;s a quality story,
-              not a velocity story. I used this to anchor the commercial argument for the Experimentation→Opal attach motion.
+              not a velocity story. I used this to anchor the commercial argument for the Experimentation→AI Agent attach motion.
             </p>
             <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "22px" }}>
               <AIQualityComparison />
@@ -3170,7 +3170,7 @@ export default function Home() {
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
             I designed Dev Agent as a tool-calling agent, not a chatbot. It reads four data sources, reasons
             over them with an LLM, dispatches specialised tools in sequence, and writes structured results back
-            to the Optimizely API. Click any node to see the implementation detail behind each layer.
+            to the platform API. Click any node to see the implementation detail behind each layer.
           </p>
           <DevAgentERD />
         </section>
@@ -3217,7 +3217,7 @@ export default function Home() {
             <span className="text-amber-500">swap the connector, keep everything else</span>
           </SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
-            The Optimizely implementation is the reference. Select any industry below to see what changes
+            The platform implementation is the reference. Select any industry below to see what changes
             (data connector, metric definitions, compliance guardrails) and what stays identical (the
             monitoring loop, tool suite, personalisation store, and learning loop).
           </p>
@@ -3291,7 +3291,7 @@ export default function Home() {
                 {[
                   { name: "ARR Tier",        effect: "Large accounts experiment more AND have higher baseline renewal. Creates a spurious correlation even with zero causal effect.",   severity: "High",   color: "#ef4444" },
                   { name: "Account Tenure",  effect: "Long-tenured accounts are more experimentally mature AND more sticky. Partially observable via contract start date.",               severity: "Medium", color: "#f59e0b" },
-                  { name: "Product Adoption",effect: "Accounts using more Optimizely products have more surfaces to run experiments on : correlated with both engagement and retention.", severity: "Medium", color: "#f59e0b" },
+                  { name: "Product Adoption",effect: "Accounts using more of the product suite have more surfaces to run experiments on : correlated with both engagement and retention.", severity: "Medium", color: "#f59e0b" },
                   { name: "Industry Vertical",effect: "FinTech and e-commerce are structurally more experimentation-mature. Often unobservable at the account level.",                    severity: "Low",    color: "#6b7280" },
                 ].map(({ name, effect, severity, color }) => (
                   <div key={name} className="p-4 rounded-xl border" style={{ background: "#12121a", borderColor: "#2a2a3a" }}>
@@ -3316,7 +3316,7 @@ export default function Home() {
               to land at exactly 4,999 or 5,001. That near-randomness around the threshold gives a
               genuinely causal estimate : +12% renewal lift from crossing the qualification gate.
               IV and PSM converged on the same direction. I took this to leadership. The engagement metric
-              went into CS health scoring and the Experimentation→Opal attach motion with that backing.
+              went into CS health scoring and the Experimentation→AI Agent attach motion with that backing.
             </p>
           </div>
         </section>
@@ -3328,7 +3328,7 @@ export default function Home() {
           <SectionLabel>10: Analysis Code</SectionLabel>
           <SectionHeading>Working scripts on GitHub</SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
-            All analysis runs on synthetic data : same schema shapes as the Optimizely platform output,
+            All analysis runs on synthetic data : same schema shapes as the platform output,
             generated from scratch. Five self-contained Python scripts, runnable with standard scientific libraries.
           </p>
           <PythonCodeExplorer />

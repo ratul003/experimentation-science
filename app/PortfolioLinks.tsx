@@ -35,7 +35,7 @@ export default function PortfolioLinks() {
         ))}
       </div>
       <div style={{ fontSize: "0.7rem", color: "#64748b", marginTop: "12px" }}>
-        Written case study — all thresholds, statistical frameworks, and analytical approaches described from first-hand analytics work at Optimizely. No customer data reproduced.
+        Written case study — all thresholds, statistical frameworks, and analytical approaches described from first-hand analytics work at a B2B experimentation and digital-experience platform. No customer data reproduced.
       </div>
     </div>
   );

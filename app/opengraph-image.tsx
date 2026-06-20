@@ -27,7 +27,7 @@ export default function Image() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "20px", fontWeight: 700, letterSpacing: "4px", textTransform: "uppercase", color: SECONDARY }}>
             <div style={{ width: "9px", height: "9px", borderRadius: "50%", background: SECONDARY }} />
-            Case Study · Optimizely
+            Case Study · Experimentation Platform
           </div>
         </div>
 
