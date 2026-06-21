@@ -353,7 +353,7 @@ const EXP_TYPES = [
     platformProduct: "Web Experimentation (the platform supports full factorial and fractional factorial MVT)",
     traffic: "Split across all combinations: 4 variants in 2x2 = 25% each",
     sampleImpact: "Larger: n multiplies by number of cells. A 2x2 requires ~4x the traffic of a simple A/B test for equal power.",
-    watchout: "Fractional factorial designs test a subset of combinations to reduce traffic requirements : but can't detect certain interaction effects.",
+    watchout: "Fractional factorial designs test a subset of combinations to reduce traffic requirements , but can't detect certain interaction effects.",
     example: "Test headline × social proof × CTA colour simultaneously. Required to catch super-additive interactions that sequential A/B tests miss.",
   },
   {
@@ -364,7 +364,7 @@ const EXP_TYPES = [
     when: "You're shipping a new feature and want to control rollout percentage, test it on a segment, or do a canary release before full launch.",
     platformProduct: "Feature Experimentation : SDK-based, works across any platform (web, mobile, server)",
     traffic: "Configurable: 0–100% rollout with targeting rules (user attributes, segments, environments)",
-    sampleImpact: "Same power principles apply : but you control exposure exactly via SDK, so allocation is more precise than client-side cookie-based",
+    sampleImpact: "Same power principles apply , but you control exposure exactly via SDK, so allocation is more precise than client-side cookie-based",
     watchout: "Feature flags persist across sessions. Users assigned to a variant stay in it. Don't flip flags mid-experiment without resetting the analysis.",
     example: "Roll out AI experiment suggestions to 10% of accounts, measure Dev Agent activation rate, expand to 50% if qualified.",
   },
@@ -373,7 +373,7 @@ const EXP_TYPES = [
     label: "Holdout Group",
     tagline: "Long-run counterfactual control",
     color: "#a5b4fc",
-    when: "You want to measure the cumulative value of an entire product area or feature portfolio over time : not a single feature in isolation.",
+    when: "You want to measure the cumulative value of an entire product area or feature portfolio over time , not a single feature in isolation.",
     platformProduct: "Feature Experimentation with a persistent exclusion group : the platform supports holdout layers for exactly this use case",
     traffic: "Typically 5–10% held back from ALL feature changes for the entire measurement period",
     sampleImpact: "Designed for long-term (90–365 day) measurement. Requires explicit statistical adjustment for multiple comparisons over time.",
@@ -635,14 +635,14 @@ function MVTResultsMatrix() {
   const [replayStep, setReplayStep] = useState<number | null>(null);
 
   const replaySteps = [
-    { title: "Test 1: Headline change", cell: "10", color: "#818cf8", result: "p = 0.148 — not significant",
-      desc: "You isolate the headline. Control: 3.1%. New benefit-focused headline: 3.3%. Standard stop criteria: not significant. Most teams kill the idea here." },
-    { title: "Test 2: Social proof", cell: "01", color: "#818cf8", result: "p = 0.083 — not significant",
-      desc: "So you run social proof instead. Control: 3.1%. Social proof: 3.4%. Still not significant. Two tests run — neither crossed the threshold." },
+    { title: "Test 1: Headline change", cell: "10", color: "#818cf8", result: "p = 0.148, not significant",
+      desc: "You isolate the headline. Control: 3.1%. New benefit-focused headline: 3.3%. Standard stop criteria, not significant. Most teams kill the idea here." },
+    { title: "Test 2: Social proof", cell: "01", color: "#818cf8", result: "p = 0.083, not significant",
+      desc: "So you run social proof instead. Control: 3.1%. Social proof: 3.4%. Still not significant. Two tests run, and neither crossed the threshold." },
     { title: "Sequential conclusion", cell: null, color: "#ef4444", result: "Ship nothing",
       desc: "Two failed A/B tests. Logical conclusion: neither change works. You move on. The +35% lift is sitting there undiscovered." },
     { title: "Full factorial reality", cell: "11", color: "#10b981", result: "+35.5% · p < 0.001 ✓",
-      desc: "The 2×2 design revealed: headline alone = n.s., social proof alone = n.s., but together = +35.5%. Super-additive interaction — invisible to sequential A/B testing by design." },
+      desc: "The 2×2 design revealed: headline alone = n.s., social proof alone = n.s., but together = +35.5%. A super-additive interaction, invisible to sequential A/B testing by design." },
   ];
 
   const cells = [
@@ -1074,7 +1074,7 @@ function CausalDAG() {
           ))}
         </defs>
 
-        {/* Chain node boxes — appear left to right */}
+        {/* Chain node boxes: appear left to right */}
         {chain.map(({ label, sub, x, color }, i) => (
           <g key={label} style={fade(i * 180)}>
             <rect x={x} y={nodeY} width={nodeW} height={nodeH} rx="9" fill={`${color}10`} stroke={`${color}40`} strokeWidth="1.2" />
@@ -1083,7 +1083,7 @@ function CausalDAG() {
           </g>
         ))}
 
-        {/* Causal arrows — each appears just after its source node */}
+        {/* Causal arrows: each appears just after its source node */}
         {chain.slice(0, -1).map((node, i) => (
           <g key={`arr-${i}`} style={fade(i * 180 + 120)}>
             <line x1={node.x + nodeW} y1={nodeY + nodeH / 2} x2={chain[i + 1].x - 2} y2={nodeY + nodeH / 2}
@@ -1091,7 +1091,7 @@ function CausalDAG() {
           </g>
         ))}
 
-        {/* Confounder nodes — appear after the chain */}
+        {/* Confounder nodes: appear after the chain */}
         {confounders.map((cf, i) => (
           <g key={cf.label} style={fade(900 + i * 150)}>
             <rect x={cf.x} y={cf.y} width="112" height="36" rx="7" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.25)" strokeWidth="1" />
@@ -1100,7 +1100,7 @@ function CausalDAG() {
           </g>
         ))}
 
-        {/* Confounder dashed paths — last to appear */}
+        {/* Confounder dashed paths: last to appear */}
         {confounders.map((cf) =>
           cf.targets.map((tx) => (
             <line key={`${cf.x}-${tx}`} x1={cf.x + 56} y1={cf.y + 28} x2={tx + 56} y2={nodeY}
@@ -1513,7 +1513,7 @@ function OptimizeVisual() {
           ))}
         </svg>
         <div style={{ marginTop: "6px", fontSize: "0.67rem", color: "#4a4a68" }}>
-          High-accuracy predictions become workspace-specific few-shot examples. The model improves on your data : not generic training.
+          High-accuracy predictions become workspace-specific few-shot examples. The model improves on your data , not generic training.
         </div>
       </div>
     </div>
@@ -1583,11 +1583,11 @@ const CAPABILITIES = [
     label: "Monitor",
     color: "#ef4444",
     tagline: "Real-time watchdog for experiment health",
-    what: "Continuously scans every active experiment for statistical anomalies, data quality issues, and traffic allocation drift. Surfaces problems in plain language before they contaminate results : so you never analyse a broken experiment.",
+    what: "Continuously scans every active experiment for statistical anomalies, data quality issues, and traffic allocation drift. Surfaces problems in plain language before they contaminate results , so you never analyse a broken experiment.",
     checks: [
       { name: "Sample Ratio Mismatch (SRM)", desc: "Compares actual traffic split to the expected allocation every 30 minutes. A 50/50 experiment drifting to 52/48 over three days signals implementation bias : SRM check flags this before the analysis window closes." },
       { name: "Novelty effect detection", desc: "Tracks whether conversion rate lift is decaying over the first 7 days. A spike that reverts to baseline is novelty, not a real product improvement. Stopping early on novelty = shipping the wrong variant." },
-      { name: "Data quality validation", desc: "Checks that tracking events fire correctly on every impression, matched against the Tracking Plan schema. A mis-fired primary metric event silently corrupts your conversion rate : and it won't show up in the results table." },
+      { name: "Data quality validation", desc: "Checks that tracking events fire correctly on every impression, matched against the Tracking Plan schema. A mis-fired primary metric event silently corrupts your conversion rate , and it won't show up in the results table." },
       { name: "Cross-experiment contamination", desc: "Flags when two active experiments expose the same user segment to conflicting changes. Interaction effects make both results uninterpretable. The agent recommends mutual exclusion rules." },
     ],
     build: `# Scheduled job : runs every 30 minutes
@@ -1629,13 +1629,13 @@ async def monitor_experiments(workspace_id: str):
     id: "customize",
     label: "Customize",
     color: "#f59e0b",
-    tagline: "Workspace-aware suggestions: not generic templates",
+    tagline: "Workspace-aware suggestions, not generic templates",
     what: "Reads your experiment history, segment performance data, and metric library to customise every recommendation to your product reality. The MDE it suggests is based on your actual traffic volume, not a textbook assumption.",
     checks: [
       { name: "Pattern extraction from past experiments", desc: "Which hypothesis formats led to qualified experiments at ≥5K impressions? Which targeting rules consistently over-performed? Dev Agent reads this from your history and applies the patterns : your workspace trains the agent." },
       { name: "Traffic-aware MDE recommendations", desc: "Instead of asking which MDE you want to detect, Dev Agent calculates the MDE you can realistically detect given your daily traffic volume, current experiment load, and planned run duration." },
       { name: "Metric library validation", desc: "Every metric suggestion is cross-referenced against your canonical event dictionary. Dev Agent will not suggest a metric that does not exist in your Tracking Plan : preventing the single most common experiment design mistake." },
-      { name: "Segment performance matching", desc: "If your highest-converting segment is Mobile / US / Paid Search, Dev Agent prioritises targeting rules that match your historically best-performing slices : so your experiments start from a position of strength." },
+      { name: "Segment performance matching", desc: "If your highest-converting segment is Mobile / US / Paid Search, Dev Agent prioritises targeting rules that match your historically best-performing slices , so your experiments start from a position of strength." },
     ],
     build: `# Context extraction : runs once per suggestion request
 def build_workspace_context(workspace_id: str) -> dict:
@@ -1739,7 +1739,7 @@ response = claude.messages.create(
     what: "After every experiment concludes, Dev Agent compares its predictions to actual outcomes. Accurate predictions become positive few-shot examples. Inaccurate ones trigger prompt review. After 30 experiments, suggestion quality improves measurably : the agent effectively fine-tunes itself on your workspace data.",
     checks: [
       { name: "Prediction accuracy scoring", desc: "After each experiment: was the predicted sample size within 15% of the actual n needed? Did the MDE estimate hold? Did the qualification prediction match the outcome? Each prediction gets a score stored against the hypothesis ID." },
-      { name: "Positive few-shot accumulation", desc: "High-accuracy predictions (score ≥ 0.85) are stored as few-shot examples for future LLM calls in the same workspace. The model learns workspace-specific patterns from its own successful predictions : not from generic training data." },
+      { name: "Positive few-shot accumulation", desc: "High-accuracy predictions (score ≥ 0.85) are stored as few-shot examples for future LLM calls in the same workspace. The model learns workspace-specific patterns from its own successful predictions , not from generic training data." },
       { name: "Alert precision improvement", desc: "False positive alerts : flagged anomalies that turned out to be noise : are logged. Alert thresholds auto-adjust per workspace to reduce fatigue without missing real issues. Precision compounds over time." },
       { name: "Cross-workspace learning (opt-in)", desc: "Aggregated, anonymised patterns from opted-in workspaces inform global priors. Example: 'In B2B SaaS, pricing page experiments need 2x the MDE estimate relative to feature experiments.' Workspace-level data is never shared." },
     ],
@@ -1795,18 +1795,18 @@ function DevAgentCapabilities() {
   const config = {
     monitor: {
       color: "#ef4444", label: "Monitor", tagline: "Real-time watchdog",
-      story: "You ran a 14-day experiment. On day 3, a JavaScript conflict made the 50/50 split drift to 62/38. Nobody noticed. The analysis showed p = 0.04. You shipped. The lift was an artefact : and it quietly degraded the metric it was supposed to improve. Dev Agent's monitoring loop flags this on day 3, before a single line of analysis is written.",
+      story: "You ran a 14-day experiment. On day 3, a JavaScript conflict made the 50/50 split drift to 62/38. Nobody noticed. The analysis showed p = 0.04. You shipped. The lift was an artefact , and it quietly degraded the metric it was supposed to improve. Dev Agent's monitoring loop flags this on day 3, before a single line of analysis is written.",
       visual: <MonitorVisual />,
       checks: [
         { name: "Sample Ratio Mismatch (SRM)", desc: "Compares actual split to expected every 30 min. A 50/50 drifting to 62/38 signals implementation bias : flagged before the analysis window closes." },
         { name: "Novelty effect detection", desc: "Tracks whether lift is decaying in the first 7 days. A spike that reverts to baseline is novelty, not real improvement. Stopping early on novelty = shipping the wrong variant." },
-        { name: "Data quality validation", desc: "Checks tracking events against the Tracking Plan schema on every impression. A mis-fired primary metric event corrupts your conversion rate silently : and won't appear in the results table." },
+        { name: "Data quality validation", desc: "Checks tracking events against the Tracking Plan schema on every impression. A mis-fired primary metric event corrupts your conversion rate silently , and won't appear in the results table." },
         { name: "Cross-experiment contamination", desc: "Flags when two experiments expose the same segment to conflicting changes. Both results become uninterpretable. Agent recommends mutual exclusion rules before both run longer." },
       ],
     },
     customize: {
       color: "#f59e0b", label: "Customize", tagline: "Workspace-aware suggestions",
-      story: "A generic agent asked 'what MDE do you want to detect?' Your workspace has 847 completed experiments, a clear winning segment (Mobile / US / Paid Search), and a consistent pattern of 9-day qualified runs. None of that was used. Dev Agent reads your experiment history and applies it : so suggestions start from your reality, not a statistics textbook.",
+      story: "A generic agent asked 'what MDE do you want to detect?' Your workspace has 847 completed experiments, a clear winning segment (Mobile / US / Paid Search), and a consistent pattern of 9-day qualified runs. None of that was used. Dev Agent reads your experiment history and applies it , so suggestions start from your reality, not a statistics textbook.",
       visual: <CustomizeVisual />,
       checks: [
         { name: "Pattern extraction from past experiments", desc: "Which hypothesis formats led to qualified experiments? Which targeting rules over-performed? Dev Agent reads this from your history : your workspace trains the agent, not the other way around." },
@@ -1823,16 +1823,16 @@ function DevAgentCapabilities() {
         { name: "Risk tolerance profiling", desc: "Conservative PMs get larger n and explicit risk callouts. Aggressive PMs get faster designs with clear trade-off statements. Controlled by a single profile field in the user store." },
         { name: "Statistical paradigm matching", desc: "Frequentist PMs get p-values and significance flags. Bayesian PMs get posterior probability and expected loss. Same data, different framing : controlled by the system prompt, not separate code." },
         { name: "Verbosity tuning", desc: "3-sentence summary for busy PMs. Full methodology breakdown for analytically-oriented ones. One profile field controls which template the LLM selects : no branching logic required." },
-        { name: "Decision history learning", desc: "After 10–15 decisions, Dev Agent pre-adjusts. It learns if you consistently tighten time constraints, favour Bayesian framing, or reject conservative n estimates : and adapts before you have to say it again." },
+        { name: "Decision history learning", desc: "After 10–15 decisions, Dev Agent pre-adjusts. It learns if you consistently tighten time constraints, favour Bayesian framing, or reject conservative n estimates , and adapts before you have to say it again." },
       ],
     },
     optimize: {
       color: "#34d399", label: "Optimize", tagline: "Gets better every experiment",
-      story: "Week 1: Dev Agent predicted 4,200 impressions needed. Actual: 6,800. Off by 62%. Month 3: predicted 5,100. Actual: 5,400. Off by 6%. It analysed 47 closed experiments, scored each prediction, and stored the accurate ones as workspace-specific few-shot examples. It learned your traffic patterns : not from generic training data, from its own track record.",
+      story: "Week 1: Dev Agent predicted 4,200 impressions needed. Actual: 6,800. Off by 62%. Month 3: predicted 5,100. Actual: 5,400. Off by 6%. It analysed 47 closed experiments, scored each prediction, and stored the accurate ones as workspace-specific few-shot examples. It learned your traffic patterns , not from generic training data, from its own track record.",
       visual: <OptimizeVisual />,
       checks: [
         { name: "Prediction accuracy scoring", desc: "After each experiment: was the sample size within 15% of actual? Did MDE estimate hold? Did qualification prediction match? Each prediction gets a score stored against the hypothesis ID." },
-        { name: "Positive few-shot accumulation", desc: "High-accuracy predictions (≥ 0.85) become few-shot examples for future calls in the same workspace. The model learns workspace-specific patterns from its own successes : not generic assumptions." },
+        { name: "Positive few-shot accumulation", desc: "High-accuracy predictions (≥ 0.85) become few-shot examples for future calls in the same workspace. The model learns workspace-specific patterns from its own successes , not generic assumptions." },
         { name: "Alert precision improvement", desc: "False positive alerts are logged. Thresholds auto-adjust per workspace to reduce fatigue without missing real issues. Every false alarm makes the next one less likely." },
         { name: "Cross-workspace learning (opt-in)", desc: "Aggregated, anonymised patterns from opted-in workspaces inform global priors : e.g. 'B2B SaaS pricing experiments need 2x the MDE estimate.' Individual workspace data is never shared." },
       ],
@@ -2353,7 +2353,7 @@ function CrossFunctionalMap() {
       </div>
       <div style={{ marginTop: "14px", background: "rgba(245,158,11,0.04)", border: "1px solid rgba(245,158,11,0.12)", borderRadius: "10px", padding: "12px 16px" }}>
         <p style={{ fontSize: "0.82rem", color: "#9ca3af", margin: 0, lineHeight: 1.65 }}>
-          Experiment quality is a <strong style={{ color: "#fbbf24" }}>cross-functional output</strong>. PMs define the question. Analytics validates the method and proves causation. Engineering ensures clean implementation. CS turns engagement signal into commercial action. Dev Agent compresses the first three phases by ~70% : but doesn&apos;t replace the human judgement in each role.
+          Experiment quality is a <strong style={{ color: "#fbbf24" }}>cross-functional output</strong>. PMs define the question. Analytics validates the method and proves causation. Engineering ensures clean implementation. CS turns engagement signal into commercial action. Dev Agent compresses the first three phases by ~70% , but doesn&apos;t replace the human judgement in each role.
         </p>
       </div>
     </div>
@@ -2367,7 +2367,7 @@ function DevAgentERD() {
 
   type NodeDetail = { label: string; layer: string; color: string; body: string };
   const DETAILS: Record<string, NodeDetail> = {
-    product:    { layer: "Input",        color: "#818cf8", label: "Product Context",           body: "Workspace metadata: experiment history, segment definitions, conversion goals. Dev Agent reads this to anchor suggestions in the account's actual product reality : not generic best-practice assumptions." },
+    product:    { layer: "Input",        color: "#818cf8", label: "Product Context",           body: "Workspace metadata: experiment history, segment definitions, conversion goals. Dev Agent reads this to anchor suggestions in the account's actual product reality , not generic best-practice assumptions." },
     metriclib:  { layer: "Input",        color: "#818cf8", label: "Metric Library",            body: "The canonical event dictionary maintained by Product Analytics. Dev Agent validates metric choices against approved events and auto-suggests guardrail metrics from the library." },
     tracking:   { layer: "Input",        color: "#818cf8", label: "Tracking Plan",             body: "The Segment tracking contract : required properties, event naming, identity linkage. Dev Agent checks that any new event meets the schema before generating tracking code." },
     history:    { layer: "Input",        color: "#818cf8", label: "Experiment History",        body: "Historical experiment data: baseline conversion rates by segment, typical MDEs, prior test results. Powers the sample-size calculator with real account-specific data instead of generic assumptions." },
@@ -2603,9 +2603,9 @@ function HypothesisScorer() {
 
   const scoreIt = () => {
     const checks = [
-      { label: "IF clause: the intervention",        pass: /\bif\b/i.test(text),           tip: "Start with 'If we [change X]...' — what exactly are you testing?" },
-      { label: "THEN clause: the expected outcome",  pass: /\bthen\b/i.test(text),          tip: "Add '...then [metric] will [increase/decrease]' — state the direction." },
-      { label: "BECAUSE clause: causal mechanism",   pass: /\bbecause\b/i.test(text),       tip: "End with '...because [reason]' — make your causal assumption explicit." },
+      { label: "IF clause: the intervention",        pass: /\bif\b/i.test(text),           tip: "Start with 'If we [change X]...': what exactly are you testing?" },
+      { label: "THEN clause: the expected outcome",  pass: /\bthen\b/i.test(text),          tip: "Add '...then [metric] will [increase/decrease]': state the direction." },
+      { label: "BECAUSE clause: causal mechanism",   pass: /\bbecause\b/i.test(text),       tip: "End with '...because [reason]': make your causal assumption explicit." },
       { label: "Primary metric named",               pass: /rate|conversion|click|sign.?up|revenue|retention|engagement|impression|session|churn|activation|adoption|purchase|subscri/i.test(text), tip: "Name the specific metric (e.g. 'upgrade rate', 'checkout completion')." },
       { label: "Quantified lift target",             pass: /\d+\s*%|\d+\s*percent/i.test(text), tip: "Add a specific target (e.g. 'by 15%') to make the hypothesis falsifiable." },
     ];
@@ -2614,7 +2614,7 @@ function HypothesisScorer() {
 
   const sc = result?.score ?? 0;
   const scoreColor = sc >= 8 ? "#10b981" : sc >= 6 ? "#f59e0b" : sc >= 4 ? "#f97316" : "#ef4444";
-  const scoreLabel = sc >= 8 ? "Strong — ready to build" : sc >= 6 ? "Good start, tighten the detail" : sc >= 4 ? "Needs work before launch" : "Missing key components";
+  const scoreLabel = sc >= 8 ? "Strong: ready to build" : sc >= 6 ? "Good start, tighten the detail" : sc >= 4 ? "Needs work before launch" : "Missing key components";
 
   return (
     <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "22px", marginTop: "28px" }}>
@@ -2668,14 +2668,14 @@ function ExperimentTypeQuiz() {
   type ExpType = "ab" | "mvt" | "flag" | "holdout";
   const questions = [
     { q: "What are you changing?", opts: [
-        { label: "One element on a page — CTA, headline, layout", value: "single" },
+        { label: "One element on a page: CTA, headline, layout", value: "single" },
         { label: "Multiple elements at once, to catch interaction effects", value: "multi" },
         { label: "A feature, algorithm, or backend logic", value: "feature" },
         { label: "I want to measure a whole product area over time", value: "holdout" },
     ]},
     { q: "Does the variant need to be consistent across a user's sessions and devices?", opts: [
-        { label: "Yes — same user must always see the same variant", value: "consistent" },
-        { label: "No — page-level targeting is fine", value: "page" },
+        { label: "Yes, the same user must always see the same variant", value: "consistent" },
+        { label: "No, page-level targeting is fine", value: "page" },
     ]},
     { q: "What's your daily traffic on the target surface?", opts: [
         { label: "Under 1,000 visits/day", value: "low" },
@@ -2693,9 +2693,9 @@ function ExperimentTypeQuiz() {
 
   const results: Record<ExpType, { label: string; color: string; tagline: string; why: string; watchout: string }> = {
     ab:      { label: "A/B Test",         color: "#818cf8", tagline: "One variable, two variants",              why: "Single, clear hypothesis with page-level targeting. A/B gives the cleanest, most auditable answer when you have one thing to test.",                                        watchout: "Running multiple A/B tests on the same page simultaneously contaminates results. Use mutual exclusion layers." },
-    mvt:     { label: "Multivariate (MVT)", color: "#f59e0b", tagline: "Multiple elements, all combinations",  why: "You need to detect interaction effects — where two changes together outperform either alone. Sequential A/B testing is structurally blind to this.",           watchout: "A 2×2 factorial needs ~4× the traffic of a simple A/B for equal power per cell. Budget the traffic requirement before committing." },
+    mvt:     { label: "Multivariate (MVT)", color: "#f59e0b", tagline: "Multiple elements, all combinations",  why: "You need to detect interaction effects, where two changes together outperform either alone. Sequential A/B testing is structurally blind to this.",           watchout: "A 2×2 factorial needs ~4× the traffic of a simple A/B for equal power per cell. Budget the traffic requirement before committing." },
     flag:    { label: "Feature Flag",     color: "#34d399", tagline: "Server-side, session-consistent",        why: "The change lives in backend logic, or needs to be consistent across devices and sessions. SDK-based allocation is the only reliable approach.",                  watchout: "Don't flip a feature flag mid-experiment without resetting the analysis window. Users already assigned stay assigned." },
-    holdout: { label: "Holdout Group",    color: "#a5b4fc", tagline: "Long-run counterfactual control",        why: "Measures the cumulative value of a product area over a full quarter — not any single feature. Holdout is the only way to get a portfolio-level number.",    watchout: "Holdout users receive no product improvements for months. Weigh measurement value against user experience cost carefully." },
+    holdout: { label: "Holdout Group",    color: "#a5b4fc", tagline: "Long-run counterfactual control",        why: "Measures the cumulative value of a product area over a full quarter, not any single feature. Holdout is the only way to get a portfolio-level number.",    watchout: "Holdout users receive no product improvements for months. Weigh measurement value against user experience cost carefully." },
   };
 
   const answer = (val: string) => {
@@ -2863,7 +2863,7 @@ function NormalDistributionViz() {
           <div style={{ height: "100%", width: `${progress}%`, background: significant ? "linear-gradient(90deg,#818cf8,#10b981)" : progress > 60 ? "#f59e0b" : "#818cf8", borderRadius: "3px", transition: "width .08s linear, background .5s" }} />
         </div>
         {progress > 0 && !significant && <div style={{ marginTop: "5px", fontSize: "0.6rem", color: "#52525b" }}>
-          {impressions < GATE ? "Below the 5K qualification gate — analysis here would be underpowered" : "Past the gate — waiting for separation to reach significance"}
+          {impressions < GATE ? "Below the 5K qualification gate: analysis here would be underpowered" : "Past the gate, waiting for separation to reach significance"}
         </div>}
       </div>
     </div>
@@ -2977,7 +2977,7 @@ export default function Home() {
         <ChapterBadge
           num="Ch02"
           title="The Design"
-          desc="A well-designed experiment is mostly decided before the first user sees it. Hypothesis quality, experiment type, traffic volume, and platform choice all lock in before launch : and mistakes here can't be corrected after."
+          desc="A well-designed experiment is mostly decided before the first user sees it. Hypothesis quality, experiment type, traffic volume, and platform choice all lock in before launch , and mistakes here can't be corrected after."
         />
 
         <section id="design">
@@ -3051,7 +3051,7 @@ export default function Home() {
           </SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
             Toggle between before and after to see how each dimension of experiment design changed when the
-            framework was codified : and how each change connected back to the retention and quality findings.
+            framework was codified , and how each change connected back to the retention and quality findings.
           </p>
           <DesignRevolution />
         </section>
@@ -3141,7 +3141,7 @@ export default function Home() {
             Dev Agent + AI Orchestration: before and after
           </SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
-            When Dev Agent launched, I wanted to know whether it made experiments better : not just
+            When Dev Agent launched, I wanted to know whether it made experiments better , not just
             faster. The acceleration flow below shows what changes at each phase. The quality finding
             below it shows what the data said.
           </p>

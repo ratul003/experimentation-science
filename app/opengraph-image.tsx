@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Experimentation Science — Wahid Tawsif Ratul";
+export const alt = "Experimentation Science · Wahid Tawsif Ratul";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -36,7 +36,7 @@ export default function Image() {
             Experimentation Science
           </div>
           <div style={{ marginTop: "26px", fontSize: "27px", lineHeight: 1.45, color: "#9a9ab8", maxWidth: "900px" }}>
-            The statistical rigor behind the “qualified experiment” — power analysis, MDE, and AI-assisted experiment quality.
+            The statistical rigor behind the “qualified experiment”: power analysis, MDE, and AI-assisted experiment quality.
           </div>
         </div>
 
