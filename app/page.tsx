@@ -903,15 +903,15 @@ function AIAccelerationFlow() {
     {
       phase: "Monitor",
       without: ["Check results daily in OA manually", "Spot data quality issues late", "Miss interaction effects", "React to early noise ('peeking')"],
-      with:    ["AI agent alerts when power is reached", "Automated data quality checks flag anomalies early", "Interaction effects surfaced in MVT analysis", "Sequential validity enforced : no early peeking penalty"],
-      aiTool: "AI Agent Analytics",
+      with:    ["AI orchestration alerts when power is reached", "Automated data quality checks flag anomalies early", "Interaction effects surfaced in MVT analysis", "Sequential validity enforced : no early peeking penalty"],
+      aiTool: "AI Orchestration Analytics",
       lift: "Earlier catch rate on bad experiments",
     },
     {
       phase: "Decide",
       without: ["Read statistical output and interpret manually", "Write results summary for stakeholders", "Decide next test from gut feel", "Manually archive experiment learnings"],
-      with:    ["The AI agent explains results in plain language with confidence framing", "Auto-generates stakeholder summary pushed to Coda", "Recommends next hypothesis based on experiment history", "Learning is stored, searchable, and feeds future power calculations"],
-      aiTool: "AI Agent Analytics",
+      with:    ["The AI orchestration platform explains results in plain language with confidence framing", "Auto-generates stakeholder summary pushed to Coda", "Recommends next hypothesis based on experiment history", "Learning is stored, searchable, and feeds future power calculations"],
+      aiTool: "AI Orchestration Analytics",
       lift: "2 days → same day decision",
     },
   ];
@@ -922,7 +922,7 @@ function AIAccelerationFlow() {
       <div style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr", gap: "12px", paddingBottom: "8px", borderBottom: "1px solid #2a2a3a" }}>
         <div />
         <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#ef4444", textAlign: "center" as const }}>Without AI</div>
-        <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#10b981", textAlign: "center" as const }}>With AI (Dev Agent + AI Agent)</div>
+        <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#10b981", textAlign: "center" as const }}>With AI (Dev Agent + AI Orchestration)</div>
       </div>
 
       {phases.map(({ phase, without, with: withAI, aiTool, lift }) => (
@@ -985,7 +985,7 @@ function AIQualityComparison() {
         </div>
       ))}
       <div style={{ fontSize: "0.75rem", color: "#9ca3af", lineHeight: 1.6, background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: "8px", padding: "10px 14px", marginTop: "4px" }}>
-        <strong style={{ color: "#10b981" }}>+16% qualification rate lift</strong> : 58% of standard experiments cleared the quality bar; 74% of Dev Agent-assisted ones did. That&apos;s not a velocity story: it&apos;s a quality story. I used this to anchor the commercial argument that selling the AI agent into Experimentation accounts made their core product work better.
+        <strong style={{ color: "#10b981" }}>+16% qualification rate lift</strong> : 58% of standard experiments cleared the quality bar; 74% of Dev Agent-assisted ones did. That&apos;s not a velocity story: it&apos;s a quality story. I used this to anchor the commercial argument that selling the AI orchestration platform into Experimentation accounts made their core product work better.
       </div>
     </div>
   );
@@ -2322,7 +2322,7 @@ function CrossFunctionalMap() {
         "Monitors account experiment exposure",
         "Flags qualitative signal from accounts",
         "Uses engagement metric in health scoring",
-        "Drives AI Agent attach motion via quality story",
+        "Drives AI Orchestration attach motion via quality story",
         "Translates qualification rate into renewal risk",
       ],
     },
@@ -3138,7 +3138,7 @@ export default function Home() {
         <section id="ai-accel">
           <SectionLabel>07: How AI Accelerates Every Phase</SectionLabel>
           <SectionHeading>
-            Dev Agent + AI Agent: before and after
+            Dev Agent + AI Orchestration: before and after
           </SectionHeading>
           <p className="text-[#9ca3af] leading-relaxed mb-8 max-w-2xl">
             When Dev Agent launched, I wanted to know whether it made experiments better : not just
@@ -3151,7 +3151,7 @@ export default function Home() {
             <h3 className="font-semibold text-white mb-5 text-sm uppercase tracking-wider">The quality finding</h3>
             <p className="text-[#9ca3af] text-sm leading-relaxed mb-6 max-w-2xl">
               58% of standard experiments cleared the quality bar. 74% of Dev Agent-assisted ones did. That&apos;s a quality story,
-              not a velocity story. I used this to anchor the commercial argument for the Experimentation→AI Agent attach motion.
+              not a velocity story. I used this to anchor the commercial argument for the Experimentation→AI Orchestration attach motion.
             </p>
             <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "22px" }}>
               <AIQualityComparison />
@@ -3316,7 +3316,7 @@ export default function Home() {
               to land at exactly 4,999 or 5,001. That near-randomness around the threshold gives a
               genuinely causal estimate : +12% renewal lift from crossing the qualification gate.
               IV and PSM converged on the same direction. I took this to leadership. The engagement metric
-              went into CS health scoring and the Experimentation→AI Agent attach motion with that backing.
+              went into CS health scoring and the Experimentation→AI Orchestration attach motion with that backing.
             </p>
           </div>
         </section>

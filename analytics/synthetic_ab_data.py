@@ -1,7 +1,7 @@
 """
 synthetic_ab_data.py
 Generates synthetic A/B test experiment data matching the structure of
-Optimizely's experimentation platform output.
+a B2B experimentation platform's output.
 
 Usage:
     python synthetic_ab_data.py --experiments 500 --out data/
