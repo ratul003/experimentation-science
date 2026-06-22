@@ -546,7 +546,7 @@ function ExperimentLifecycleFlow() {
     { label: "Decision",         sub: "Ship / iterate / stop",       color: "#f59e0b" },
   ];
   return (
-    <div style={{ overflowX: "auto", paddingBottom: "8px" }}>
+    <div style={{ overflowX: "auto", paddingBottom: "8px", minWidth: 0, maxWidth: "100%" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "0", flexWrap: "nowrap", minWidth: "620px" }}>
         {steps.map(({ label, sub, color, gate }, i) => (
           <React.Fragment key={label}>
@@ -659,7 +659,7 @@ function MVTResultsMatrix() {
   return (
     <div>
       {/* The matrix */}
-      <div style={{ overflowX: "auto" }}>
+      <div style={{ overflowX: "auto", minWidth: 0, maxWidth: "100%" }}>
         <table style={{ borderCollapse: "collapse", width: "100%", minWidth: "480px" }}>
           <thead>
             <tr>
@@ -1061,7 +1061,7 @@ function CausalDAG() {
   });
 
   return (
-    <div ref={dagRef} style={{ background: "#0d1117", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "20px", overflowX: "auto" }}>
+    <div ref={dagRef} style={{ background: "#0d1117", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "20px", overflowX: "auto", minWidth: 0, maxWidth: "100%" }}>
       <div style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#6b7280", marginBottom: "14px" }}>
         Causal DAG: backdoor paths from confounders
       </div>
@@ -1306,7 +1306,7 @@ function PythonCodeExplorer() {
           );
         })}
       </div>
-      <div style={{ padding: "16px 20px", overflow: "auto" }}>
+      <div style={{ padding: "16px 20px", overflow: "auto", minWidth: 0 }}>
         <div style={{ fontSize: "0.72rem", color: "#6b7280", marginBottom: "12px", lineHeight: 1.5 }}>{file.desc}</div>
         <pre style={{ margin: 0, fontFamily: "ui-monospace, 'Cascadia Code', monospace", fontSize: "0.78rem", lineHeight: 1.75, color: "#cdd6f4", overflowX: "auto", whiteSpace: "pre" as const }}>
           <code>{file.snippet}</code>
@@ -2414,7 +2414,7 @@ function DevAgentERD() {
 
   return (
     <div>
-      <div style={{ background: "#0d1117", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "20px 20px 18px", overflowX: "auto" }}>
+      <div style={{ background: "#0d1117", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "20px 20px 18px", overflowX: "auto", minWidth: 0, maxWidth: "100%" }}>
         {/* Layer legend */}
         <div style={{ display: "flex", gap: "18px", marginBottom: "14px", flexWrap: "wrap" as const }}>
           {[{ label: "INPUT LAYER", c: IC }, { label: "INTELLIGENCE", c: LC }, { label: "TOOL SUITE", c: TC }, { label: "OUTPUT", c: OC }].map(({ label, c }) => (
