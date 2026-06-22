@@ -156,9 +156,9 @@ function StoryArc() {
   return (
     <div style={{ background: "rgba(245,158,11,0.03)", borderTop: "1px solid rgba(245,158,11,0.10)", borderBottom: "1px solid rgba(245,158,11,0.10)", marginBottom: "80px" }}>
       <div className="max-w-6xl mx-auto px-6">
-        <div style={{ display: "flex" }}>
+        <div className="story-arc-rail" style={{ display: "flex" }}>
           {chapters.map(({ label, title, desc, href }, i) => (
-            <a key={label} href={href} style={{ textDecoration: "none", flex: 1, padding: "20px 24px", borderRight: i < chapters.length - 1 ? "1px solid rgba(245,158,11,0.10)" : "none" }} className="card-hover">
+            <a key={label} href={href} style={{ textDecoration: "none", flex: 1, minWidth: 0, padding: "20px 24px", borderRight: i < chapters.length - 1 ? "1px solid rgba(245,158,11,0.10)" : "none" }} className="card-hover">
               <div style={{ fontSize: "0.58rem", fontWeight: 900, textTransform: "uppercase" as const, letterSpacing: "0.14em", color: "#f59e0b", marginBottom: "5px" }}>{label}</div>
               <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "#f1f5f9", marginBottom: "3px" }}>{title}</div>
               <div style={{ fontSize: "0.67rem", color: "#6b7280" }}>{desc}</div>
@@ -277,7 +277,7 @@ function HypothesisCards() {
             <p style={{ fontSize: "0.83rem", color: "#9ca3af", lineHeight: 1.65, margin: 0, fontStyle: "italic" }}>&ldquo;{card.hypothesis}&rdquo;</p>
           </div>
           {/* Two-col: metric + outcome */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+          <div className="grid-collapse-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
             <div style={{ background: "#0d1117", border: "1px solid #1e1e2e", borderRadius: "10px", padding: "12px 14px" }}>
               <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "#6b7280", textTransform: "uppercase" as const, letterSpacing: "0.1em", marginBottom: "5px" }}>Primary Metric</div>
               <p style={{ fontSize: "0.8rem", color: "#e2e8f0", margin: 0, lineHeight: 1.5 }}>{card.metric}</p>
@@ -307,7 +307,7 @@ const INDUSTRIES = [
 function IndustryGrid() {
   const [hovered, setHovered] = useState<string | null>(null);
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+    <div className="grid-collapse-mobile" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
       {INDUSTRIES.map(({ sector, icon, color, example, metric, type }) => {
         const on = hovered === sector;
         return (
@@ -388,7 +388,7 @@ function ExperimentTypeSelector() {
   return (
     <div>
       {/* Type tabs */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", marginBottom: "20px" }}>
+      <div className="grid-collapse-mobile-2" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", marginBottom: "20px" }}>
         {EXP_TYPES.map(e => {
           const on = e.id === active;
           return (
@@ -406,7 +406,7 @@ function ExperimentTypeSelector() {
           <span style={{ fontSize: "0.92rem", fontWeight: 700, color: t.color }}>{t.label}</span>
           <span style={{ fontSize: "0.75rem", color: "#6b7280", marginLeft: "12px" }}>{t.tagline}</span>
         </div>
-        <div style={{ padding: "20px 24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+        <div className="grid-collapse-mobile" style={{ padding: "20px 24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
           {[
             { label: "When to use",           value: t.when,          color: t.color },
             { label: "Platform product",       value: t.platformProduct, color: "#9ca3af" },
@@ -460,7 +460,7 @@ function SampleSizeCalculator() {
   ].map(r => ({ ...r, power: computePower(r.n, baselineF, mdeF) }));
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+    <div className="grid-collapse-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
       {/* Left: sliders */}
       <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "24px" }}>
         <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#6b7280", marginBottom: "20px" }}>
@@ -492,7 +492,7 @@ function SampleSizeCalculator() {
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {/* Key outputs */}
         <div style={{ background: isQualified ? "rgba(16,185,129,0.06)" : "rgba(245,158,11,0.06)", border: `1px solid ${isQualified ? "rgba(16,185,129,0.25)" : "rgba(245,158,11,0.25)"}`, borderRadius: "14px", padding: "20px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div className="grid-collapse-mobile-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             {[
               { label: "n per variation", value: requiredN.toLocaleString(), sub: "for 80% power" },
               { label: "Total traffic needed", value: totalN.toLocaleString(), sub: `${variants} variants` },
@@ -587,7 +587,7 @@ function PlatformProductGuide() {
     },
   ];
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+    <div className="grid-collapse-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
       {products.map(({ name, color, layer, best, metrics, how, typical_mde }) => (
         <div key={name} style={{ background: "#12121a", border: `1px solid ${color}25`, borderRadius: "14px", overflow: "hidden" }}>
           <div style={{ background: `${color}10`, borderBottom: `1px solid ${color}20`, padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -810,7 +810,7 @@ function StatsFramework() {
         ))}
       </div>
       {view === "freq" ? (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <div className="grid-collapse-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
           <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "20px" }}>
             <div style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#818cf8", marginBottom: "14px" }}>What it measures</div>
             <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -841,7 +841,7 @@ function StatsFramework() {
           </div>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <div className="grid-collapse-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
           <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "14px", padding: "20px" }}>
             <div style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#fbbf24", marginBottom: "14px" }}>What it measures</div>
             <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -919,14 +919,14 @@ function AIAccelerationFlow() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
       {/* Header row */}
-      <div style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr", gap: "12px", paddingBottom: "8px", borderBottom: "1px solid #2a2a3a" }}>
+      <div className="grid-collapse-mobile" style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr", gap: "12px", paddingBottom: "8px", borderBottom: "1px solid #2a2a3a" }}>
         <div />
         <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#ef4444", textAlign: "center" as const }}>Without AI</div>
         <div style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#10b981", textAlign: "center" as const }}>With AI (Dev Agent + AI Orchestration)</div>
       </div>
 
       {phases.map(({ phase, without, with: withAI, aiTool, lift }) => (
-        <div key={phase} style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr", gap: "12px", alignItems: "stretch" }}>
+        <div key={phase} className="grid-collapse-mobile" style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr", gap: "12px", alignItems: "stretch" }}>
           {/* Phase label */}
           <div style={{ display: "flex", alignItems: "flex-start", paddingTop: "14px" }}>
             <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "8px", padding: "5px 8px", textAlign: "center" as const }}>
@@ -1180,7 +1180,7 @@ function CausalApproaches() {
           <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#f1f5f9", margin: 0 }}>{current.label}</h3>
         </div>
         <p style={{ fontSize: "0.88rem", color: "#9ca3af", lineHeight: 1.7, marginBottom: "20px" }}>{current.desc}</p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
+        <div className="grid-collapse-mobile" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
           {current.detail.map(({ title, body }) => (
             <div key={title} style={{ background: "#0d1117", borderRadius: "10px", border: "1px solid #1e1e2e", padding: "14px 16px" }}>
               <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#f59e0b", marginBottom: "5px", textTransform: "uppercase" as const, letterSpacing: "0.08em" }}>{title}</div>
@@ -1286,7 +1286,7 @@ function PythonCodeExplorer() {
   const [activeFile, setActiveFile] = useState<string>(PYTHON_FILES[0].name);
   const file = PYTHON_FILES.find((f) => f.name === activeFile)!;
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "260px 1fr", gap: "0", background: "#0d1117", border: "1px solid #2a2a3a", borderRadius: "14px", overflow: "hidden" }}>
+    <div className="grid-collapse-mobile" style={{ display: "grid", gridTemplateColumns: "260px 1fr", gap: "0", background: "#0d1117", border: "1px solid #2a2a3a", borderRadius: "14px", overflow: "hidden" }}>
       <div style={{ borderRight: "1px solid #1e1e2e", padding: "16px 0" }}>
         <div style={{ padding: "0 16px 10px", fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#4a4a68" }}>analytics/</div>
         {PYTHON_FILES.map((f) => {
@@ -1370,7 +1370,7 @@ function MonitorVisual() {
 function CustomizeVisual() {
   return (
     <div style={{ display: "flex", flexDirection: "column" as const, gap: "10px" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+      <div className="grid-collapse-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
         <div style={{ background: "#0d1117", border: "1px solid rgba(239,68,68,0.18)", borderRadius: "12px", padding: "14px 16px" }}>
           <div style={{ fontSize: "0.58rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#ef4444", marginBottom: "10px", display: "flex", alignItems: "center", gap: "5px" }}>
             <span>✗</span> Generic template
@@ -1409,7 +1409,7 @@ function PersonalizeVisual() {
   const [pm, setPm] = useState<"sarah" | "marcus">("sarah");
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
+      <div className="grid-collapse-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
         {([
           { id: "sarah" as const, name: "Sarah Chen", role: "Head of B2B Product", profile: "Conservative · Frequentist · Board-facing", color: "#818cf8" },
           { id: "marcus" as const, name: "Marcus Rodriguez", role: "Growth PM", profile: "Aggressive · Bayesian · Speed-first", color: "#f59e0b" },
@@ -1425,7 +1425,7 @@ function PersonalizeVisual() {
         <div style={{ background: "#0d1117", border: "1.5px solid rgba(129,140,248,0.4)", borderRadius: "12px", padding: "16px" }}>
           <div style={{ fontSize: "0.58rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#818cf8", marginBottom: "10px" }}>Results · Frequentist framing</div>
           <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#f1f5f9", marginBottom: "8px" }}>Statistical significance confirmed : p = 0.008</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "6px", marginBottom: "10px" }}>
+          <div className="grid-collapse-mobile-2" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "6px", marginBottom: "10px" }}>
             {[{ l: "Observed lift", v: "+15.1%", c: "#10b981" }, { l: "95% CI", v: "+11.2% to +18.9%", c: "#818cf8" }, { l: "n / arm", v: "12,400", c: "#9ca3af" }].map(({ l, v, c }) => (
               <div key={l} style={{ background: "#12121a", borderRadius: "7px", padding: "8px 9px" }}>
                 <div style={{ fontSize: "0.56rem", color: "#52525b", marginBottom: "2px" }}>{l}</div>
@@ -1442,7 +1442,7 @@ function PersonalizeVisual() {
         <div style={{ background: "#0d1117", border: "1.5px solid rgba(245,158,11,0.4)", borderRadius: "12px", padding: "16px" }}>
           <div style={{ fontSize: "0.58rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#f59e0b", marginBottom: "10px" }}>Results · Bayesian framing</div>
           <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#f1f5f9", marginBottom: "8px" }}>88% probability treatment wins</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "6px", marginBottom: "10px" }}>
+          <div className="grid-collapse-mobile-2" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "6px", marginBottom: "10px" }}>
             {[{ l: "Win probability", v: "88%", c: "#f59e0b" }, { l: "Expected loss", v: "0.8pp", c: "#34d399" }, { l: "Lift estimate", v: "+15.1%", c: "#10b981" }].map(({ l, v, c }) => (
               <div key={l} style={{ background: "#12121a", borderRadius: "7px", padding: "8px 9px" }}>
                 <div style={{ fontSize: "0.56rem", color: "#52525b", marginBottom: "2px" }}>{l}</div>
@@ -1472,7 +1472,7 @@ function OptimizeVisual() {
   const pathD = pts.map((p, i) => `${i === 0 ? "M" : "L"} ${toX(i)} ${toY(p.acc)}`).join(" ");
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "12px" }}>
+      <div className="grid-collapse-mobile-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "12px" }}>
         <div style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "10px", padding: "12px 14px" }}>
           <div style={{ fontSize: "0.57rem", fontWeight: 700, color: "#ef4444", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: "3px" }}>Week 1</div>
           <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#ef4444", fontFamily: "ui-monospace, monospace", lineHeight: 1 }}>38%</div>
@@ -1558,7 +1558,7 @@ function DevAgentRequestFlow() {
             </React.Fragment>
           ))}
         </div>
-        <div style={{ marginTop: "16px", paddingTop: "14px", borderTop: "1px solid #1e1e2e", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+        <div className="grid-collapse-mobile" style={{ marginTop: "16px", paddingTop: "14px", borderTop: "1px solid #1e1e2e", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
           {[
             { label: "Steps 1–2 are automatic", body: "Context extraction runs on every call. The PM just types their goal : grounding in workspace history happens behind the scenes.", color: "#818cf8" },
             { label: "Step 3 chains tools", body: "The LLM decides which tools to call and in what order. For a new experiment: hypothesis first, then sample size, then variant code : sequenced automatically.", color: "#6366f1" },
@@ -1844,7 +1844,7 @@ function DevAgentCapabilities() {
   return (
     <div>
       {/* Tabs */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", marginBottom: "20px" }}>
+      <div className="grid-collapse-mobile-2" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", marginBottom: "20px" }}>
         {(Object.keys(config) as Array<keyof typeof config>).map(id => {
           const on = id === active;
           const cfg = config[id];
@@ -1865,7 +1865,7 @@ function DevAgentCapabilities() {
       </div>
 
       {/* Visual + checks */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+      <div className="grid-collapse-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
         <div>
           <div style={{ fontSize: "0.57rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: c.color, marginBottom: "10px" }}>What it looks like in practice</div>
           {c.visual}
@@ -1938,7 +1938,7 @@ function DevAgentBuildGuide() {
   return (
     <div>
       {/* Step card grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "16px" }}>
+      <div className="grid-collapse-mobile-2" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "16px" }}>
         {BUILD_STEPS.map((s, i) => {
           const on = s.step === active;
           const past = stepIndex > i;
@@ -1961,7 +1961,7 @@ function DevAgentBuildGuide() {
       </div>
 
       {/* Step detail */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+      <div className="grid-collapse-mobile" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
         <div style={{ background: "#12121a", border: `1px solid ${step.color}22`, borderRadius: "12px", padding: "20px 22px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
             <div>
@@ -2093,7 +2093,7 @@ function IndustryAdapter() {
   return (
     <div>
       {/* Invariant callout: what's identical across all industries */}
-      <div style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "12px", padding: "16px 20px", marginBottom: "18px", display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: "20px", alignItems: "start" }}>
+      <div className="grid-collapse-mobile" style={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: "12px", padding: "16px 20px", marginBottom: "18px", display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: "20px", alignItems: "start" }}>
         <div>
           <div style={{ fontSize: "0.57rem", fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#ef4444", marginBottom: "8px" }}>Swap this (per industry)</div>
           {["Data layer connector: Step 01", "Metric definitions (domain-specific names)", "Compliance additions to system prompt"].map((item, i) => (
@@ -2103,7 +2103,7 @@ function IndustryAdapter() {
             </div>
           ))}
         </div>
-        <div style={{ width: "1px", background: "#2a2a3a", alignSelf: "stretch" }} />
+        <div className="hide-on-mobile" style={{ width: "1px", background: "#2a2a3a", alignSelf: "stretch" }} />
         <div>
           <div style={{ fontSize: "0.57rem", fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "#10b981", marginBottom: "8px" }}>Keep this (identical)</div>
           {["Monitoring loop : Step 02", "Tool suite : Step 03", "Personalisation layer : Step 04", "Learning loop : Step 05"].map((item, i) => (
@@ -2133,7 +2133,7 @@ function IndustryAdapter() {
           <div style={{ fontSize: "0.92rem", fontWeight: 700, color: row.color }}>{row.sector}</div>
           <div style={{ fontSize: "0.7rem", color: "#6b7280" }}>{row.subsector}</div>
         </div>
-        <div style={{ padding: "16px 20px", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+        <div className="grid-collapse-mobile" style={{ padding: "16px 20px", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
           {[
             { label: "Platform (Step 01 swap)", value: row.platform, note: true },
             { label: "Primary metric", value: row.primaryMetric, accent: true },
@@ -2193,7 +2193,7 @@ function WinShowcase() {
   return (
     <div ref={ref} style={{ maxWidth: "72rem", margin: "0 auto", padding: "0 24px 60px" }}>
       <div style={{ fontSize: "0.58rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.15em", color: "#52525b", marginBottom: "16px", textAlign: "center" as const }}>Key Results</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "10px" }}>
+      <div className="grid-collapse-mobile-2" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "10px" }}>
         {wins.map(({ metric, label, sub, color, delay }) => (
           <div key={label} style={{
             background: `${color}07`,
@@ -2330,7 +2330,7 @@ function CrossFunctionalMap() {
 
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
+      <div className="grid-collapse-mobile-2" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
         {roles.map(({ id, title, color, responsibilities }) => {
           const on = activeRole === id;
           return (
@@ -2576,7 +2576,7 @@ function DevAgentERD() {
       </div>
 
       {/* Build notes */}
-      <div style={{ marginTop: "12px", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+      <div className="grid-collapse-mobile" style={{ marginTop: "12px", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
         {[
           { title: "Why Sonnet 4.6, not Opus?", body: "Opus 4.8 has higher reasoning ceiling but adds 2–4s latency per call : too slow for in-editor suggestions. Haiku 4.5 is fast but drops tool-calling reliability on multi-step chains. Sonnet 4.6 hits the sweet spot: <1s median, structured output that holds, and strong enough reasoning for hypothesis and results tasks. The monitoring loop uses Haiku 4.5 separately : simpler task, lower cost." },
           { title: "Context window strategy", body: "The Context Extractor compresses workspace history with prompt caching before passing to the LLM : reducing tokens by ~60% and ensuring the sample-size calculator uses real account baselines, not defaults." },

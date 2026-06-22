@@ -33,6 +33,30 @@ html { scroll-behavior: smooth; }
 pre { max-width: 100%; overflow-x: auto; }
 table { display: block; width: max-content; max-width: 100%; overflow-x: auto; }
 
+/* Belt-and-braces: never let the page itself scroll sideways on mobile. */
+html, body { overflow-x: clip; }
+
+/* ── Mobile grid/flex collapse (phone only — desktop ≥768px untouched) ───────── */
+/* These override inline gridTemplateColumns / flex on small screens only, so the
+   multi-column hero stat row, story-arc rail, and step-card grids fold to a
+   single column (or wrap) and no child can exceed the viewport width. */
+@media (max-width: 767px) {
+  .grid-collapse-mobile {
+    grid-template-columns: 1fr !important;
+  }
+  /* 2-up keeps small stat tiles readable rather than one giant column */
+  .grid-collapse-mobile-2 {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  /* StoryArc chapter rail: flex row → wrapping grid of 2 */
+  .story-arc-rail {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+  /* Decorative dividers that only make sense in a horizontal layout */
+  .hide-on-mobile { display: none !important; }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
